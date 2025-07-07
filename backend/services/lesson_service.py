@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import List, Optional
-from ..models import Lesson, UserProgress, User
-from ..schemas import LessonResponse, LessonGenerationRequest
+from models import Lesson, UserProgress, User
+from schemas import LessonResponse, LessonGenerationRequest
 
 class LessonService:
     def __init__(self, db: Session):

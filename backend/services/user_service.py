@@ -1,7 +1,7 @@
 from sqlalchemy.orm import Session
 from typing import Optional
-from ..models import User
-from ..schemas import UserCreate, UserResponse
+from models import User
+from schemas import UserCreate, UserResponse
 
 class UserService:
     def __init__(self, db: Session):
@@ -35,7 +35,7 @@ class UserService:
     
     def get_user_stats(self, user_id: int) -> dict:
         """Get user statistics"""
-        from ..models import UserProgress
+        from models import UserProgress
         
         completed_lessons = self.db.query(UserProgress).filter(
             UserProgress.user_id == user_id
