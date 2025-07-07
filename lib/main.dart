@@ -3,16 +3,16 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 void main() {
-  runApp(const DuoreligonApp());
+  runApp(const HidayaApp());
 }
 
-class DuoreligonApp extends StatelessWidget {
-  const DuoreligonApp({super.key});
+class HidayaApp extends StatelessWidget {
+  const HidayaApp({super.key});
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Duoreligon',
+      title: 'Hidaya',
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
         textTheme: GoogleFonts.latoTextTheme(
