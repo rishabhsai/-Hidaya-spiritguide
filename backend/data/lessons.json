@@ -1,0 +1,47 @@
+[
+  {
+    "id": 1,
+    "title": "Introduction to Buddhism",
+    "content": "Buddhism is a spiritual tradition that focuses on personal spiritual development and the attainment of a deep insight into the true nature of life. Founded by Siddhartha Gautama (the Buddha) over 2,500 years ago, Buddhism teaches that all life is interconnected and that suffering comes from desire and attachment.\n\nKey Concepts:\n• The Four Noble Truths\n• The Eightfold Path\n• Karma and Rebirth\n• Meditation and Mindfulness\n\nBuddhism emphasizes compassion, wisdom, and ethical living as paths to enlightenment.",
+    "religion": "buddhism",
+    "difficulty": "beginner",
+    "duration": 5,
+    "practical_task": "Practice mindful breathing for 2 minutes today. Sit comfortably, close your eyes, and focus on your breath."
+  },
+  {
+    "id": 2,
+    "title": "The Five Pillars of Islam",
+    "content": "Islam is a monotheistic religion that teaches submission to the will of Allah (God). The Five Pillars of Islam are the core practices that every Muslim is expected to follow.\n\n1. Shahada (Faith): Declaration of faith in Allah and Muhammad as his messenger\n2. Salat (Prayer): Five daily prayers facing Mecca\n3. Zakat (Charity): Giving to those in need\n4. Sawm (Fasting): Fasting during the month of Ramadan\n5. Hajj (Pilgrimage): Pilgrimage to Mecca at least once in a lifetime\n\nThese pillars provide a framework for spiritual growth and community service.",
+    "religion": "islam",
+    "difficulty": "beginner",
+    "duration": 7,
+    "practical_task": "Take a moment to reflect on gratitude. Write down three things you're thankful for today."
+  },
+  {
+    "id": 3,
+    "title": "Christianity: The Life of Jesus",
+    "content": "Christianity is based on the life and teachings of Jesus Christ, who Christians believe is the Son of God and the savior of humanity. Jesus' ministry lasted about three years and focused on love, forgiveness, and service to others.\n\nKey Teachings:\n• Love your neighbor as yourself\n• Turn the other cheek\n• The Golden Rule\n• The Sermon on the Mount\n\nJesus' parables and miracles taught lessons about faith, compassion, and the Kingdom of God.",
+    "religion": "christianity",
+    "difficulty": "beginner",
+    "duration": 6,
+    "practical_task": "Practice forgiveness today. Think of someone you need to forgive and make a small gesture of reconciliation."
+  },
+  {
+    "id": 4,
+    "title": "Hinduism: The Path to Dharma",
+    "content": "Hinduism is one of the world's oldest religions, with roots dating back over 4,000 years. It emphasizes dharma (righteous living), karma (action and consequence), and moksha (liberation from the cycle of rebirth).\n\nCore Concepts:\n• Dharma: Righteous duty and moral law\n• Karma: Action and its consequences\n• Samsara: Cycle of birth, death, and rebirth\n• Moksha: Liberation from samsara\n\nHinduism teaches that there are many paths to spiritual realization.",
+    "religion": "hinduism",
+    "difficulty": "beginner",
+    "duration": 5,
+    "practical_task": "Practice selfless service today. Do one kind act for someone without expecting anything in return."
+  },
+  {
+    "id": 5,
+    "title": "Judaism: Covenant and Community",
+    "content": "Judaism is a monotheistic religion that emphasizes the special relationship between God and the Jewish people through the covenant. It focuses on ethical living, study, and community.\n\nKey Elements:\n• The Torah (sacred text)\n• The Ten Commandments\n• Tikkun Olam (repairing the world)\n• Shabbat (day of rest)\n\nJudaism teaches that every person has the responsibility to make the world a better place.",
+    "religion": "judaism",
+    "difficulty": "beginner",
+    "duration": 6,
+    "practical_task": "Practice gratitude by saying 'thank you' to three people today for something they've done for you."
+  }
+] 
