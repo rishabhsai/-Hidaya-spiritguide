@@ -198,7 +198,7 @@ class ReligionSelector extends StatelessWidget {
       case 'christianity':
         return Icons.church;
       case 'judaism':
-        return Icons.star_of_david;
+        return Icons.star; // Fallback for compatibility
       case 'buddhism':
         return Icons.self_improvement;
       case 'hinduism':

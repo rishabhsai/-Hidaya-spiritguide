@@ -231,6 +231,22 @@ class ApiService {
     }
   }
 
+  static Future<Map<String, dynamic>> postOnboarding(String userInput, List<Map<String, dynamic>> conversationHistory) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/onboarding/next_step'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'user_input': userInput,
+        'conversation_history': conversationHistory,
+      }),
+    );
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to process onboarding step');
+    }
+  }
+
   // User endpoints
   static Future<User> createUser(String persona, {String? goals, String? learningStyle, String? religion}) async {
     final response = await http.post(
@@ -325,11 +341,11 @@ class ApiService {
   }
 
   // Progress endpoints
-  static Future<Progress> completeLesson(ProgressCreate progressData) async {
+  static Future<Progress> completeLesson(Map<String, dynamic> progressData) async {
     final response = await http.post(
       Uri.parse('$baseUrl/progress/complete_lesson'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode(progressData.toJson()),
+      body: json.encode(progressData),
     );
     
     if (response.statusCode == 200) {

@@ -1,3 +1,5 @@
+import 'lesson.dart';
+
 class Progress {
   final int id;
   final int userId;
@@ -184,5 +186,37 @@ class DifficultyStats {
       difficulty: json['difficulty'],
       count: json['count'],
     );
+  }
+}
+
+class ProgressCreate {
+  final int userId;
+  final int lessonId;
+  final String? reflection;
+  final int? rating;
+  final int? timeSpent;
+  final String? moodBefore;
+  final String? moodAfter;
+
+  ProgressCreate({
+    required this.userId,
+    required this.lessonId,
+    this.reflection,
+    this.rating,
+    this.timeSpent,
+    this.moodBefore,
+    this.moodAfter,
+  });
+
+  Map<String, dynamic> toJson() {
+    return {
+      'user_id': userId,
+      'lesson_id': lessonId,
+      'reflection': reflection,
+      'rating': rating,
+      'time_spent': timeSpent,
+      'mood_before': moodBefore,
+      'mood_after': moodAfter,
+    };
   }
 } 
