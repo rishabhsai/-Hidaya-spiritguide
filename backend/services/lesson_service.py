@@ -2,7 +2,7 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func, desc, and_
 from typing import List, Optional, Dict
 from models import Lesson, UserProgress, User, UserReflection
-from schemas import LessonResponse, LessonGenerationRequest, ProgressCreate, ProgressResponse, ReflectionCreate
+from schemas import LessonResponse, ProgressCreate, ProgressResponse, ReflectionCreate
 
 class LessonService:
     def __init__(self, db: Session):

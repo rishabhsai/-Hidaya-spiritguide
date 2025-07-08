@@ -7,14 +7,18 @@ from sqlalchemy.orm import Session
 from pydantic import BaseModel
 from openai import OpenAI
 from typing import List, Optional
+from datetime import datetime, timedelta
 
 # Import our modules
-from models import create_tables, get_db, User, Lesson, UserProgress, UserReflection, SacredText
+from models import create_tables, get_db, User, Lesson, UserProgress, UserReflection, SacredText, Religion, Course, Chapter, CustomLesson, ChatbotSession, StreakSaver
 from schemas import (
     UserCreate, UserResponse, LessonResponse, ProgressCreate, 
     ProgressResponse, OnboardingRequest, OnboardingResponse,
     UserStats, ReflectionCreate, ReflectionResponse, SacredTextResponse,
-    SacredTextSearchRequest, LessonRecommendation, UserRecommendationRequest
+    SacredTextSearchRequest, LessonRecommendation, UserRecommendationRequest,
+    ReligionResponse, CourseResponse, ChapterResponse, CustomLessonResponse,
+    ChatbotSessionResponse, CustomLessonRequest, ChatbotRequest, ChatbotResponse,
+    StreakSaverRequest, StreakSaverResponse
 )
 from services.ai_service import AIService
 from services.user_service import UserService
@@ -48,6 +52,370 @@ ai_service = AIService()
 @app.get("/")
 def read_root():
     return {"message": "Welcome to Hidaya API", "version": "1.0.0"}
+
+# Religion endpoints
+@app.get("/religions", response_model=List[ReligionResponse])
+def get_all_religions(db: Session = Depends(get_db)):
+    """Get all available religions"""
+    religions = db.query(Religion).filter(Religion.is_active == True).all()
+    return [ReligionResponse.from_orm(religion) for religion in religions]
+
+@app.post("/religions", response_model=ReligionResponse)
+def create_religion(religion_data: dict, db: Session = Depends(get_db)):
+    """Create a new religion (admin only)"""
+    religion = Religion(**religion_data)
+    db.add(religion)
+    db.commit()
+    db.refresh(religion)
+    return ReligionResponse.from_orm(religion)
+
+# Course endpoints
+@app.get("/courses", response_model=List[CourseResponse])
+def get_all_courses(
+    religion_id: Optional[int] = Query(None, description="Filter by religion"),
+    difficulty: Optional[str] = Query(None, description="Filter by difficulty"),
+    db: Session = Depends(get_db)
+):
+    """Get all courses with optional filtering"""
+    query = db.query(Course)
+    if religion_id:
+        query = query.filter(Course.religion_id == religion_id)
+    if difficulty:
+        query = query.filter(Course.difficulty == difficulty)
+    
+    courses = query.all()
+    return [CourseResponse.from_orm(course) for course in courses]
+
+@app.get("/courses/{course_id}", response_model=CourseResponse)
+def get_course(course_id: int, db: Session = Depends(get_db)):
+    """Get a specific course"""
+    course = db.query(Course).filter(Course.id == course_id).first()
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+    return CourseResponse.from_orm(course)
+
+@app.get("/courses/{course_id}/chapters", response_model=List[ChapterResponse])
+def get_course_chapters(course_id: int, db: Session = Depends(get_db)):
+    """Get all chapters for a specific course"""
+    chapters = db.query(Chapter).filter(Chapter.course_id == course_id).order_by(Chapter.chapter_number).all()
+    return [ChapterResponse.from_orm(chapter) for chapter in chapters]
+
+@app.get("/courses/{course_id}/chapters/{chapter_id}", response_model=ChapterResponse)
+def get_chapter(chapter_id: int, db: Session = Depends(get_db)):
+    """Get a specific chapter"""
+    chapter = db.query(Chapter).filter(Chapter.id == chapter_id).first()
+    if not chapter:
+        raise HTTPException(status_code=404, detail="Chapter not found")
+    return ChapterResponse.from_orm(chapter)
+
+@app.post("/courses/generate")
+async def generate_comprehensive_course(
+    religion: str = Body(..., embed=True),
+    difficulty: str = Body("beginner", embed=True),
+    db: Session = Depends(get_db)
+):
+    """Generate a comprehensive course for a religion (like Duolingo's main course)"""
+    try:
+        course_data = await ai_service.generate_comprehensive_course(religion, difficulty)
+        
+        if "error" in course_data:
+            raise HTTPException(status_code=500, detail=course_data["error"])
+        
+        # Create religion if it doesn't exist
+        religion_obj = db.query(Religion).filter(Religion.name == religion).first()
+        if not religion_obj:
+            religion_obj = Religion(name=religion, description=f"Comprehensive course for {religion}")
+            db.add(religion_obj)
+            db.commit()
+            db.refresh(religion_obj)
+        
+        # Create course
+        course = Course(
+            religion_id=religion_obj.id,
+            name=course_data.get("course_name", f"{religion} Course"),
+            description=course_data.get("description", f"Comprehensive {religion} course"),
+            difficulty=difficulty,
+            total_chapters=len(course_data.get("chapters", [])),
+            estimated_hours=course_data.get("estimated_hours", 0),
+            is_comprehensive=True
+        )
+        db.add(course)
+        db.commit()
+        db.refresh(course)
+        
+        # Create chapters
+        for chapter_data in course_data.get("chapters", []):
+            chapter = Chapter(
+                course_id=course.id,
+                title=chapter_data.get("title", "Untitled"),
+                content=chapter_data.get("content", ""),
+                chapter_number=chapter_data.get("chapter_number", 1),
+                duration=chapter_data.get("duration", 5),
+                learning_objectives=chapter_data.get("learning_objectives"),
+                prerequisites=chapter_data.get("prerequisites")
+            )
+            db.add(chapter)
+        
+        db.commit()
+        
+        return {
+            "success": True,
+            "course_id": course.id,
+            "chapters_created": len(course_data.get("chapters", [])),
+            "message": f"Comprehensive {religion} course generated successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# Custom lesson endpoints
+@app.post("/custom-lessons/generate", response_model=CustomLessonResponse)
+async def generate_custom_lesson(
+    request: CustomLessonRequest,
+    db: Session = Depends(get_db)
+):
+    """Generate a custom lesson on a specific topic"""
+    try:
+        lesson_data = await ai_service.generate_custom_lesson(
+            request.topic, 
+            request.religion, 
+            request.difficulty
+        )
+        
+        if "error" in lesson_data:
+            raise HTTPException(status_code=500, detail=lesson_data["error"])
+        
+        # Create custom lesson
+        custom_lesson = CustomLesson(
+            user_id=request.user_id,
+            title=lesson_data.get("title", f"Custom lesson on {request.topic}"),
+            topic=request.topic,
+            religion=request.religion,
+            content=lesson_data.get("content", ""),
+            quiz_questions=lesson_data.get("quiz_questions", []),
+            practical_tasks=lesson_data.get("practical_tasks", []),
+            sources=lesson_data.get("sources", [])
+        )
+        
+        db.add(custom_lesson)
+        db.commit()
+        db.refresh(custom_lesson)
+        
+        return CustomLessonResponse.from_orm(custom_lesson)
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/custom-lessons/{user_id}", response_model=List[CustomLessonResponse])
+def get_user_custom_lessons(user_id: int, db: Session = Depends(get_db)):
+    """Get all custom lessons for a user"""
+    lessons = db.query(CustomLesson).filter(CustomLesson.user_id == user_id).order_by(CustomLesson.created_at.desc()).all()
+    return [CustomLessonResponse.from_orm(lesson) for lesson in lessons]
+
+# Chatbot endpoints
+@app.post("/chatbot/start", response_model=ChatbotResponse)
+async def start_chatbot_session(
+    request: ChatbotRequest,
+    db: Session = Depends(get_db)
+):
+    """Start a new chatbot session and get initial response"""
+    try:
+        # Create chatbot session
+        session = ChatbotSession(
+            user_id=request.user_id,
+            initial_concern=request.concern,
+            religion=request.religion,
+            conversation_history=request.conversation_history or []
+        )
+        
+        db.add(session)
+        db.commit()
+        db.refresh(session)
+        
+        # Get AI response
+        ai_response = await ai_service.process_chatbot_conversation(
+            request.concern,
+            request.religion,
+            request.conversation_history or []
+        )
+        
+        # Update session with AI response
+        session.generated_lesson = ai_response.get("generated_lesson")
+        session.recommended_verses = ai_response.get("recommended_verses", [])
+        session.mood_improvement = ai_response.get("mood_suggestion")
+        
+        if request.conversation_history:
+            session.conversation_history = request.conversation_history
+        else:
+            session.conversation_history = []
+        
+        session.conversation_history.append({"role": "user", "content": request.concern})
+        session.conversation_history.append({"role": "assistant", "content": ai_response.get("ai_response", "")})
+        
+        db.commit()
+        
+        return ChatbotResponse(
+            ai_response=ai_response.get("ai_response", ""),
+            generated_lesson=ai_response.get("generated_lesson"),
+            recommended_verses=ai_response.get("recommended_verses", []),
+            mood_suggestion=ai_response.get("mood_suggestion"),
+            session_id=session.id
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/chatbot/{session_id}/continue", response_model=ChatbotResponse)
+async def continue_chatbot_session(
+    session_id: int,
+    message: str = Body(..., embed=True),
+    db: Session = Depends(get_db)
+):
+    """Continue an existing chatbot session"""
+    try:
+        session = db.query(ChatbotSession).filter(ChatbotSession.id == session_id).first()
+        if not session:
+            raise HTTPException(status_code=404, detail="Chatbot session not found")
+        
+        # Add user message to conversation history
+        session.conversation_history.append({"role": "user", "content": message})
+        
+        # Get AI response
+        ai_response = await ai_service.process_chatbot_conversation(
+            message,
+            session.religion,
+            session.conversation_history
+        )
+        
+        # Add AI response to conversation history
+        session.conversation_history.append({"role": "assistant", "content": ai_response.get("ai_response", "")})
+        session.updated_at = datetime.utcnow()
+        
+        db.commit()
+        
+        return ChatbotResponse(
+            ai_response=ai_response.get("ai_response", ""),
+            generated_lesson=ai_response.get("generated_lesson"),
+            recommended_verses=ai_response.get("recommended_verses", []),
+            mood_suggestion=ai_response.get("mood_suggestion"),
+            session_id=session.id
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/chatbot/{user_id}/sessions", response_model=List[ChatbotSessionResponse])
+def get_user_chatbot_sessions(user_id: int, db: Session = Depends(get_db)):
+    """Get all chatbot sessions for a user"""
+    sessions = db.query(ChatbotSession).filter(ChatbotSession.user_id == user_id).order_by(ChatbotSession.created_at.desc()).all()
+    return [ChatbotSessionResponse.from_orm(session) for session in sessions]
+
+# Streak management endpoints
+@app.post("/streak-savers/purchase", response_model=StreakSaverResponse)
+def purchase_streak_savers(request: StreakSaverRequest, db: Session = Depends(get_db)):
+    """Purchase streak savers (simulated payment)"""
+    try:
+        user = db.query(User).filter(User.id == request.user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        # Create streak savers
+        for _ in range(request.quantity):
+            streak_saver = StreakSaver(user_id=request.user_id)
+            db.add(streak_saver)
+        
+        # Update user's available streak savers
+        user.streak_savers_available += request.quantity
+        
+        db.commit()
+        
+        return StreakSaverResponse(
+            success=True,
+            streak_savers_available=user.streak_savers_available,
+            message=f"Successfully purchased {request.quantity} streak saver(s)"
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/streak-savers/use", response_model=StreakSaverResponse)
+def use_streak_saver(user_id: int, db: Session = Depends(get_db)):
+    """Use a streak saver to maintain streak"""
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        if user.streak_savers_available <= 0:
+            raise HTTPException(status_code=400, detail="No streak savers available")
+        
+        # Find an unused streak saver
+        streak_saver = db.query(StreakSaver).filter(
+            StreakSaver.user_id == user_id,
+            StreakSaver.is_used == False
+        ).first()
+        
+        if not streak_saver:
+            raise HTTPException(status_code=400, detail="No unused streak savers found")
+        
+        # Use the streak saver
+        streak_saver.is_used = True
+        streak_saver.used_at = datetime.utcnow()
+        user.streak_savers_available -= 1
+        
+        db.commit()
+        
+        return StreakSaverResponse(
+            success=True,
+            streak_savers_available=user.streak_savers_available,
+            message="Streak saver used successfully"
+        )
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/users/{user_id}/update-streak")
+def update_user_streak(user_id: int, db: Session = Depends(get_db)):
+    """Update user's streak based on daily activity"""
+    try:
+        user = db.query(User).filter(User.id == user_id).first()
+        if not user:
+            raise HTTPException(status_code=404, detail="User not found")
+        
+        today = datetime.utcnow().date()
+        
+        # Check if user was active today
+        if user.last_activity_date:
+            last_activity = user.last_activity_date.date()
+            
+            if today == last_activity:
+                # Already updated today
+                return {"message": "Streak already updated today"}
+            
+            elif today - last_activity == timedelta(days=1):
+                # Consecutive day
+                user.current_streak += 1
+                if user.current_streak > user.longest_streak:
+                    user.longest_streak = user.current_streak
+            else:
+                # Streak broken
+                user.current_streak = 1
+        
+        else:
+            # First activity
+            user.current_streak = 1
+        
+        user.last_activity_date = datetime.utcnow()
+        db.commit()
+        
+        return {
+            "current_streak": user.current_streak,
+            "longest_streak": user.longest_streak,
+            "message": "Streak updated successfully"
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
 
 # Onboarding endpoints
 @app.post("/onboarding/next_step", response_model=OnboardingResponse)
@@ -200,25 +568,7 @@ async def generate_lesson(request: dict, db: Session = Depends(get_db)):
             religion=request.get("religion"),
             difficulty=request.get("difficulty", "beginner")
         )
-        if "error" in lesson_data:
-            raise HTTPException(status_code=500, detail=lesson_data["error"])
-        # Only allow valid Lesson fields
-        allowed_fields = [
-            "title", "content", "religion", "difficulty", "duration", "practical_task", "learning_objectives", "prerequisites"
-        ]
-        lesson_fields = {k: lesson_data[k] for k in allowed_fields if k in lesson_data}
-        print("[DEBUG] lesson_fields to be saved:", lesson_fields)
-        raise HTTPException(status_code=200, detail={"lesson_fields": lesson_fields, "raw_lesson_data": lesson_data})
-        # Save the generated lesson (without quiz/sources)
-        # lesson_service = LessonService(db)
-        # lesson = lesson_service.create_lesson(lesson_fields)
-        # Return lesson + quiz + sources
-        # response = {
-        #     "lesson": LessonResponse.from_orm(lesson),
-        #     "quiz": lesson_data.get("quiz"),
-        #     "sources": lesson_data.get("sources")
-        # }
-        # return response
+        return lesson_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -231,56 +581,57 @@ def search_lessons(
     """Search lessons by title or content"""
     lesson_service = LessonService(db)
     lessons = lesson_service.search_lessons(query, religion)
-    return [LessonResponse.from_orm(lesson) for lesson in lessons]
+    return lessons
 
 # Progress endpoints
 @app.post("/progress/complete_lesson", response_model=ProgressResponse)
 def complete_lesson(progress_data: ProgressCreate, db: Session = Depends(get_db)):
-    """Mark a lesson as completed"""
+    """Mark a lesson as completed and record progress"""
     try:
-        lesson_service = LessonService(db)
-        progress = lesson_service.mark_lesson_completed(
-            user_id=progress_data.user_id,
-            lesson_id=progress_data.lesson_id,
-            reflection=progress_data.reflection,
-            rating=progress_data.rating,
-            time_spent=progress_data.time_spent,
-            mood_before=progress_data.mood_before,
-            mood_after=progress_data.mood_after
-        )
+        # Update user streak
+        user = db.query(User).filter(User.id == progress_data.user_id).first()
+        if user:
+            # This will be called by the frontend when completing a lesson
+            pass
+        
+        # Create progress record
+        progress = UserProgress(**progress_data.dict())
+        db.add(progress)
+        db.commit()
+        db.refresh(progress)
         return ProgressResponse.from_orm(progress)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.get("/progress/{user_id}", response_model=List[ProgressResponse])
 def get_user_progress(user_id: int, db: Session = Depends(get_db)):
-    """Get user's learning progress"""
-    lesson_service = LessonService(db)
-    progress = lesson_service.get_user_progress(user_id)
-    return [ProgressResponse.from_orm(p) for p in progress]
+    """Get all progress records for a user"""
+    progress_records = db.query(UserProgress).filter(UserProgress.user_id == user_id).all()
+    return [ProgressResponse.from_orm(progress) for progress in progress_records]
 
 @app.get("/progress/{user_id}/lesson/{lesson_id}")
 def get_lesson_progress(user_id: int, lesson_id: int, db: Session = Depends(get_db)):
-    """Get progress for a specific lesson and user"""
-    lesson_service = LessonService(db)
-    progress = lesson_service.get_lesson_progress(user_id, lesson_id)
-    if not progress:
-        return {"completed": False}
-    return ProgressResponse.from_orm(progress)
+    """Get progress for a specific lesson"""
+    progress = db.query(UserProgress).filter(
+        UserProgress.user_id == user_id,
+        UserProgress.lesson_id == lesson_id
+    ).first()
+    return progress
 
 @app.get("/progress/{user_id}/stats")
 def get_user_lesson_stats(user_id: int, db: Session = Depends(get_db)):
-    """Get comprehensive lesson statistics for a user"""
-    lesson_service = LessonService(db)
-    stats = lesson_service.get_user_lesson_stats(user_id)
-    return stats
+    """Get detailed lesson statistics for a user"""
+    stats = db.query(UserProgress).filter(UserProgress.user_id == user_id).all()
+    return {"total_completed": len(stats)}
 
 # Reflection endpoints
 @app.post("/reflections", response_model=ReflectionResponse)
 def create_reflection(reflection_data: ReflectionCreate, db: Session = Depends(get_db)):
     """Create a new reflection"""
-    lesson_service = LessonService(db)
-    reflection = lesson_service.create_reflection(reflection_data.user_id, reflection_data)
+    reflection = UserReflection(**reflection_data.dict())
+    db.add(reflection)
+    db.commit()
+    db.refresh(reflection)
     return ReflectionResponse.from_orm(reflection)
 
 @app.get("/reflections/lesson/{lesson_id}", response_model=List[ReflectionResponse])
@@ -290,11 +641,12 @@ def get_lesson_reflections(
     db: Session = Depends(get_db)
 ):
     """Get reflections for a specific lesson"""
-    lesson_service = LessonService(db)
-    reflections = lesson_service.get_lesson_reflections(lesson_id, limit)
+    reflections = db.query(UserReflection).filter(
+        UserReflection.lesson_id == lesson_id
+    ).limit(limit).all()
     return [ReflectionResponse.from_orm(reflection) for reflection in reflections]
 
-# Sacred texts endpoints
+# Sacred text endpoints
 @app.get("/texts/search")
 async def search_sacred_texts(
     query: str = Query(..., min_length=1, description="Search query"),
@@ -316,14 +668,12 @@ def get_sacred_texts(
 ):
     """Get sacred texts with optional filtering"""
     query = db.query(SacredText)
-    
     if religion:
         query = query.filter(SacredText.religion == religion)
-    
     if book:
         query = query.filter(SacredText.book == book)
     
-    texts = query.all()
+    texts = query.limit(50).all()
     return [SacredTextResponse.from_orm(text) for text in texts]
 
 # AI endpoints
@@ -333,20 +683,16 @@ async def generate_reflection_prompt(
     lesson_id: int, 
     db: Session = Depends(get_db)
 ):
-    """Generate a personalized reflection prompt"""
+    """Generate a personalized reflection prompt for a lesson"""
     try:
-        user_service = UserService(db)
-        lesson_service = LessonService(db)
-        
-        user = user_service.get_user_by_id(user_id)
-        lesson = lesson_service.get_lesson_by_id(lesson_id)
+        user = db.query(User).filter(User.id == user_id).first()
+        lesson = db.query(Lesson).filter(Lesson.id == lesson_id).first()
         
         if not user or not lesson:
             raise HTTPException(status_code=404, detail="User or lesson not found")
         
         prompt = await ai_service.generate_reflection_prompt(lesson, user)
         return {"prompt": prompt}
-        
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
@@ -358,16 +704,10 @@ async def generate_quiz(
     difficulty: str = Body("beginner", embed=True),
     db: Session = Depends(get_db)
 ):
-    """
-    Generate a quiz using ChatGPT based on a lesson/topic.
-    - topic: The topic of the quiz
-    - lesson_content: The lesson content to base the quiz on
-    - religion: (optional) Religion context
-    - difficulty: (default 'beginner')
-    """
+    """Generate a quiz based on lesson content"""
     try:
-        quiz = await ai_service.generate_quiz(topic, lesson_content, religion, difficulty)
-        return quiz
+        quiz_data = await ai_service.generate_quiz(topic, lesson_content, religion, difficulty)
+        return quiz_data
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

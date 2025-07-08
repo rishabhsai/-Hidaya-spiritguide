@@ -1,14 +1,51 @@
-# Hidaya MVP - Religious Education Platform
+# Hidaya MVP - Religion Learning App
 
-## 🎯 What is this?
+A Duolingo-style app for learning about religions, powered by AI and designed for spiritual growth.
 
-Hidaya (هداية) means "guidance" in Arabic. This MVP is a mobile app for religious education and spiritual growth, featuring:
+## 🎯 MVP Features
 
-- **AI-Powered Onboarding**: Conversational chatbot to understand your spiritual goals
-- **Personalized Lessons**: Bite-sized religious education content (5-10 minutes)
-- **Progress Tracking**: Visual progress indicators and learning streaks
-- **Reflection & Journaling**: Space to reflect on lessons and apply teachings
-- **Multi-Religion Support**: Christianity, Islam, Buddhism, Hinduism, Judaism
+### Three Learning Modes
+
+#### 1. **Comprehensive Course** (Main Mode)
+- **Like Duolingo's main course** with 100+ chapters
+- **Three difficulty levels**: Beginner, Intermediate, Expert
+- **Complete curriculum** covering entire religion history, beliefs, and practices
+- **Structured progression** with chapters and lessons
+- **Same for everyone** - consistent learning path
+
+#### 2. **Custom Lessons** (Topic Mode)
+- **Choose any topic** you want to learn about
+- **AI-generated lessons** with quizzes and practical tasks
+- **Personalized content** based on your interests
+- **Reputable sources** only - no misinformation
+- **Flexible learning** - learn what matters to you
+
+#### 3. **Spiritual Guidance** (Chatbot Mode)
+- **Share your worries and thoughts**
+- **Get personalized advice** from your religion's teachings
+- **Relevant verses and lessons** to address your concerns
+- **Mood improvement suggestions**
+- **Practical steps** for spiritual growth
+
+### Additional Features
+
+#### Streak Management
+- **Daily streaks** like Duolingo
+- **Streak savers** (paid feature) to protect your streak
+- **Longest streak tracking**
+- **Motivational notifications**
+
+#### Beautiful UI/UX
+- **Modern, intuitive design**
+- **Optimized for mobile** (iOS & Android)
+- **Smooth animations** and transitions
+- **Accessible design** principles
+
+#### AI-Powered Content
+- **GPT-4o integration** for lesson generation
+- **Reputable sources only** - no misinformation
+- **Personalized recommendations**
+- **Adaptive difficulty** progression
 
 ## 🚀 Quick Start
 
@@ -17,197 +54,225 @@ Hidaya (هداية) means "guidance" in Arabic. This MVP is a mobile app for rel
 - Flutter SDK
 - OpenAI API key
 
-### Setup (One Command)
-```bash
-./setup.sh
-```
+### Installation
 
-### Manual Setup
-1. **Install Flutter dependencies:**
+1. **Clone the repository**
    ```bash
-   flutter pub get
+   git clone <your-repo-url>
+   cd hidaya
    ```
 
-2. **Setup Python backend:**
+2. **Run the setup script**
    ```bash
-   cd backend
-   python3 -m venv venv
-   source venv/bin/activate  # On Windows: venv\Scripts\activate
-   pip install -r requirements.txt
+   chmod +x setup.sh
+   ./setup.sh
    ```
 
-3. **Configure environment:**
+3. **Add your OpenAI API key**
    ```bash
-   # Create backend/.env file
-   echo "OPENAI_API_KEY=your_openai_api_key_here" > backend/.env
-   echo "DATABASE_URL=sqlite:///./hidaya.db" >> backend/.env
+   # Edit backend/.env
+   OPENAI_API_KEY=your_actual_api_key_here
    ```
 
-4. **Seed the database:**
-   ```bash
-   cd backend
-   python seed_data.py
-   ```
-
-### Running the App
-
-1. **Start the backend:**
+4. **Start the backend**
    ```bash
    cd backend
    source venv/bin/activate
-   python main.py
+   uvicorn main:app --reload --host 0.0.0.0 --port 8000
    ```
-   Backend will be available at http://localhost:8000
 
-2. **Start the Flutter app:**
+5. **Start the Flutter app**
    ```bash
    flutter run
    ```
 
-## 📱 App Features
+## 📱 How to Use
 
-### Onboarding Flow
-- Chatbot-style conversation to understand your spiritual journey
-- Determines if you're "curious" about religions or a "practitioner" of a specific faith
-- Collects learning preferences and goals
+### First Time Setup
+1. **Onboarding**: Answer questions about your spiritual journey
+2. **Choose your persona**: Curious explorer or religious practitioner
+3. **Select learning goals**: What do you want to achieve?
 
-### Home Screen
-- Personalized lesson recommendations
-- Progress overview with stats
-- Quick access to recent lessons
+### Daily Learning
+1. **Open the app** and see your streak
+2. **Choose a learning mode**:
+   - **Comprehensive**: Follow the structured course
+   - **Custom**: Pick a topic you're interested in
+   - **Guidance**: Get help with personal concerns
+3. **Complete lessons** and track progress
+4. **Maintain your streak** with daily practice
 
-### Lesson Experience
-- 5-10 minute bite-sized lessons
-- Interactive content with practical tasks
-- Star rating system
-- Optional reflection/journaling
+### Learning Modes in Detail
 
-### Progress Tracking
-- Visual progress indicators
-- Learning streaks
-- Completed lessons history
-- Time spent learning
+#### Comprehensive Course
+- **Select a religion** (Islam, Christianity, Judaism, Buddhism, Hinduism)
+- **Choose difficulty level** (Beginner, Intermediate, Expert)
+- **Follow the curriculum** with 100+ chapters
+- **Complete quizzes** and practical tasks
+- **Track progress** through the course
+
+#### Custom Lessons
+- **Select a religion** for context
+- **Enter any topic** you want to learn about
+- **AI generates** a personalized lesson
+- **Take the quiz** to test understanding
+- **Complete practical tasks** for real-world application
+
+#### Spiritual Guidance
+- **Select your religion** for relevant advice
+- **Share your concern** or question
+- **Get compassionate guidance** based on religious teachings
+- **Receive relevant verses** and lessons
+- **Follow practical steps** for improvement
 
 ## 🏗️ Technical Architecture
 
+### Backend (Python/FastAPI)
+- **FastAPI** for high-performance API
+- **SQLAlchemy** for database management
+- **OpenAI GPT-4o** for AI features
+- **SQLite** for development (PostgreSQL for production)
+
 ### Frontend (Flutter)
-- **State Management**: Provider pattern
-- **HTTP Client**: http package for API calls
-- **UI**: Material Design 3 with custom theming
-- **Storage**: SharedPreferences for local data
+- **Cross-platform** (iOS & Android)
+- **Provider** for state management
+- **HTTP** for API communication
+- **Material Design 3** for modern UI
 
-### Backend (FastAPI + Python)
-- **Framework**: FastAPI for high-performance API
-- **Database**: SQLite (MVP), PostgreSQL ready
-- **AI Integration**: OpenAI GPT-4o for personalization
-- **Authentication**: Basic user management
-
-### Key Files Structure
-```
-lib/
-├── models/          # Data models
-├── services/        # API service
-├── providers/       # State management
-├── screens/         # UI screens
-└── widgets/         # Reusable components
-
-backend/
-├── models.py        # Database models
-├── schemas.py       # API schemas
-├── services/        # Business logic
-├── main.py          # FastAPI app
-└── data/            # Static content
-```
+### Database Schema
+- **Users**: Profiles, streaks, progress
+- **Religions**: Available religions
+- **Courses**: Comprehensive course structures
+- **Chapters**: Course content
+- **Lessons**: Individual lessons
+- **Custom Lessons**: AI-generated lessons
+- **Chatbot Sessions**: Spiritual guidance conversations
+- **Progress**: User learning progress
+- **Streak Savers**: Paid streak protection
 
 ## 🔧 API Endpoints
 
-### Onboarding
-- `POST /onboarding/next_step` - Process onboarding conversation
+### Core Endpoints
+- `GET /religions` - Get available religions
+- `GET /courses` - Get comprehensive courses
+- `POST /courses/generate` - Generate new course
+- `POST /custom-lessons/generate` - Generate custom lesson
+- `POST /chatbot/start` - Start spiritual guidance session
+- `POST /users/{id}/update-streak` - Update user streak
 
-### Users
+### User Management
+- `POST /onboarding/next_step` - Onboarding conversation
 - `POST /users/create` - Create user profile
-- `GET /users/{id}` - Get user profile
 - `GET /users/{id}/stats` - Get user statistics
 
-### Lessons
-- `GET /lessons/recommended/{user_id}` - Get personalized recommendations
-- `GET /lessons/{id}` - Get specific lesson
-- `POST /lessons/generate` - Generate AI lesson
-
-### Progress
-- `POST /progress/complete_lesson` - Mark lesson as completed
+### Progress Tracking
+- `POST /progress/complete_lesson` - Mark lesson complete
 - `GET /progress/{user_id}` - Get user progress
+- `POST /streak-savers/purchase` - Buy streak savers
 
-### Sacred Texts
-- `GET /texts/search` - Search religious texts (MVP: static content)
+## 🎨 UI/UX Design
 
-## 🎨 UI/UX Features
+### Design Principles
+- **Intuitive navigation** - Easy to find what you need
+- **Visual hierarchy** - Clear information structure
+- **Consistent branding** - Cohesive visual identity
+- **Accessibility** - Works for everyone
 
-- **Material Design 3**: Modern, accessible design
-- **Responsive Layout**: Works on various screen sizes
-- **Color-coded Religions**: Each religion has its own color theme
-- **Smooth Animations**: Engaging user experience
-- **Dark/Light Theme**: Automatic theme switching
+### Color Scheme
+- **Primary**: Purple (#6750A4) - Spiritual, trustworthy
+- **Success**: Green (#10B981) - Growth, progress
+- **Warning**: Orange (#F59E0B) - Energy, creativity
+- **Info**: Blue (#3B82F6) - Wisdom, knowledge
 
-## 📊 Sample Data
+### Key Screens
+1. **Home Screen** - Learning mode selection
+2. **Religion Selector** - Choose religion for learning
+3. **Lesson Screen** - Interactive lesson content
+4. **Progress Screen** - Track learning journey
+5. **Chatbot Screen** - Spiritual guidance interface
 
-The MVP includes 5 sample lessons:
-1. **Introduction to Buddhism** - Core concepts and practices
-2. **The Five Pillars of Islam** - Fundamental Islamic practices
-3. **Christianity: The Life of Jesus** - Key teachings and parables
-4. **Hinduism: The Path to Dharma** - Core concepts and philosophy
-5. **Judaism: Covenant and Community** - Key elements and practices
+## 🔒 Security & Privacy
 
-## 🔮 Next Steps (Post-MVP)
+### Data Protection
+- **Secure API communication** (HTTPS)
+- **User data encryption** at rest
+- **No sensitive data logging**
+- **GDPR compliance** ready
 
-1. **Enhanced AI Features**
-   - Semantic search for sacred texts
-   - Deeper personalization algorithms
-   - Advanced lesson generation
+### AI Safety
+- **Reputable sources only** for content
+- **No religious advice** - educational content only
+- **Content moderation** for user inputs
+- **Transparent AI usage** policies
 
-2. **Community Features**
-   - Discussion forums
-   - User profiles and sharing
-   - Moderated content
+## 🚀 Future Enhancements
 
-3. **Advanced Analytics**
-   - Detailed learning insights
-   - Mood tracking
-   - Progress visualization
+### Phase 2 Features
+- **Community features** - Discussion forums
+- **Gamification** - Badges, achievements
+- **Offline mode** - Download lessons
+- **Multi-language support** - International users
+- **Advanced analytics** - Learning insights
 
-4. **Content Expansion**
-   - More religions and traditions
-   - Advanced difficulty levels
-   - Audio/video content
-
-5. **Infrastructure**
-   - PostgreSQL database
-   - Vector database for semantic search
-   - Cloud deployment
-   - Offline mode
+### Phase 3 Features
+- **Voice lessons** - Audio content
+- **Video content** - Visual learning
+- **Social learning** - Study groups
+- **Certification** - Course completion certificates
+- **Integration** - Calendar, reminders
 
 ## 🐛 Troubleshooting
 
 ### Common Issues
 
-**Backend won't start:**
-- Check if virtual environment is activated
-- Verify OpenAI API key in `.env`
-- Ensure all dependencies are installed
+**Backend won't start**
+```bash
+# Check if virtual environment is activated
+source backend/venv/bin/activate
 
-**Flutter app won't connect:**
-- Verify backend is running on localhost:8000
-- Check network permissions on device/emulator
-- Ensure CORS is properly configured
+# Check if dependencies are installed
+pip install -r backend/requirements.txt
 
-**Database issues:**
-- Delete `backend/hidaya.db` and run `python seed_data.py` again
-- Check file permissions in backend directory
+# Check if .env file exists
+ls backend/.env
+```
+
+**Flutter app won't run**
+```bash
+# Check Flutter installation
+flutter doctor
+
+# Get dependencies
+flutter pub get
+
+# Clean and rebuild
+flutter clean
+flutter pub get
+```
+
+**API connection errors**
+```bash
+# Check if backend is running
+curl http://localhost:8000/
+
+# Check API key in .env
+cat backend/.env
+```
+
+## 📞 Support
 
 ### Getting Help
-- Check the API documentation at http://localhost:8000/docs
-- Review the FastAPI logs for backend errors
-- Use Flutter's debug console for frontend issues
+- **Documentation**: Check this README first
+- **API Docs**: http://localhost:8000/docs
+- **Issues**: Create GitHub issue
+- **Discussions**: Use GitHub Discussions
+
+### Contributing
+1. Fork the repository
+2. Create feature branch
+3. Make changes
+4. Add tests
+5. Submit pull request
 
 ## 📄 License
 

@@ -5,9 +5,12 @@ class User {
   final String? learningStyle;
   final String? religion;
   final int currentStreak;
+  final int longestStreak;
+  final int streakSaversAvailable;
   final int totalLessonsCompleted;
   final int totalTimeSpent;
   final DateTime createdAt;
+  final DateTime updatedAt;
 
   User({
     required this.id,
@@ -15,10 +18,13 @@ class User {
     this.goals,
     this.learningStyle,
     this.religion,
-    this.currentStreak = 0,
-    this.totalLessonsCompleted = 0,
-    this.totalTimeSpent = 0,
+    required this.currentStreak,
+    required this.longestStreak,
+    required this.streakSaversAvailable,
+    required this.totalLessonsCompleted,
+    required this.totalTimeSpent,
     required this.createdAt,
+    required this.updatedAt,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -29,9 +35,12 @@ class User {
       learningStyle: json['learning_style'],
       religion: json['religion'],
       currentStreak: json['current_streak'] ?? 0,
+      longestStreak: json['longest_streak'] ?? 0,
+      streakSaversAvailable: json['streak_savers_available'] ?? 0,
       totalLessonsCompleted: json['total_lessons_completed'] ?? 0,
       totalTimeSpent: json['total_time_spent'] ?? 0,
       createdAt: DateTime.parse(json['created_at']),
+      updatedAt: DateTime.parse(json['updated_at']),
     );
   }
 
@@ -43,9 +52,12 @@ class User {
       'learning_style': learningStyle,
       'religion': religion,
       'current_streak': currentStreak,
+      'longest_streak': longestStreak,
+      'streak_savers_available': streakSaversAvailable,
       'total_lessons_completed': totalLessonsCompleted,
       'total_time_spent': totalTimeSpent,
       'created_at': createdAt.toIso8601String(),
+      'updated_at': updatedAt.toIso8601String(),
     };
   }
 
@@ -56,9 +68,12 @@ class User {
     String? learningStyle,
     String? religion,
     int? currentStreak,
+    int? longestStreak,
+    int? streakSaversAvailable,
     int? totalLessonsCompleted,
     int? totalTimeSpent,
     DateTime? createdAt,
+    DateTime? updatedAt,
   }) {
     return User(
       id: id ?? this.id,
@@ -67,9 +82,12 @@ class User {
       learningStyle: learningStyle ?? this.learningStyle,
       religion: religion ?? this.religion,
       currentStreak: currentStreak ?? this.currentStreak,
+      longestStreak: longestStreak ?? this.longestStreak,
+      streakSaversAvailable: streakSaversAvailable ?? this.streakSaversAvailable,
       totalLessonsCompleted: totalLessonsCompleted ?? this.totalLessonsCompleted,
       totalTimeSpent: totalTimeSpent ?? this.totalTimeSpent,
       createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
     );
   }
 }

@@ -3,452 +3,369 @@ import 'package:http/http.dart' as http;
 import '../models/user.dart';
 import '../models/lesson.dart';
 import '../models/progress.dart';
+import '../models/religion.dart';
+import '../models/course.dart';
+import '../models/custom_lesson.dart';
+import '../models/chatbot_session.dart';
+import 'local_storage_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8000';
-  
-  // Onboarding
-  static Future<Map<String, dynamic>> postOnboarding(
-    String userInput, 
-    List<Map<String, dynamic>> conversationHistory
-  ) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/onboarding/next_step'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'user_input': userInput,
-          'conversation_history': conversationHistory,
-        }),
-      );
+  static const String baseUrl = 'http://localhost:8000'; // Change for production
 
+  // Religion endpoints
+  static Future<List<Religion>> getReligions() async {
+    try {
+      final response = await http.get(Uri.parse('$baseUrl/religions'));
       if (response.statusCode == 200) {
-        return json.decode(response.body);
+        List<dynamic> data = json.decode(response.body);
+        final religions = data.map((json) => Religion.fromJson(json)).toList();
+        
+        // Cache the data locally
+        await LocalStorageService.cacheReligions(religions);
+        await LocalStorageService.setLastSync(DateTime.now());
+        
+        return religions;
       } else {
-        throw Exception('Failed to get onboarding response');
+        throw Exception('Failed to load religions');
       }
     } catch (e) {
-      throw Exception('Network error: $e');
+      // Fallback to cached data if network fails
+      final cachedReligions = await LocalStorageService.getCachedReligions();
+      if (cachedReligions.isNotEmpty) {
+        await LocalStorageService.setOfflineMode(true);
+        return cachedReligions;
+      }
+      throw Exception('Failed to load religions and no cached data available');
     }
   }
 
-  // User management
-  static Future<User> createUser(Map<String, dynamic> userData) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/users/create'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(userData),
-      );
+  // Course endpoints
+  static Future<List<Course>> getCourses({int? religionId, String? difficulty}) async {
+    final queryParams = <String, String>{};
+    if (religionId != null) queryParams['religion_id'] = religionId.toString();
+    if (difficulty != null) queryParams['difficulty'] = difficulty;
 
-      if (response.statusCode == 200) {
-        return User.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to create user');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
+    final uri = Uri.parse('$baseUrl/courses').replace(queryParameters: queryParams);
+    final response = await http.get(uri);
+    
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Course.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load courses');
+    }
+  }
+
+  static Future<Course> getCourse(int courseId) async {
+    final response = await http.get(Uri.parse('$baseUrl/courses/$courseId'));
+    if (response.statusCode == 200) {
+      return Course.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load course');
+    }
+  }
+
+  static Future<List<Chapter>> getCourseChapters(int courseId) async {
+    final response = await http.get(Uri.parse('$baseUrl/courses/$courseId/chapters'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Chapter.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load chapters');
+    }
+  }
+
+  static Future<Chapter> getChapter(int chapterId) async {
+    final response = await http.get(Uri.parse('$baseUrl/courses/1/chapters/$chapterId'));
+    if (response.statusCode == 200) {
+      return Chapter.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load chapter');
+    }
+  }
+
+  static Future<Map<String, dynamic>> generateComprehensiveCourse(String religion, String difficulty) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/courses/generate'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'religion': religion,
+        'difficulty': difficulty,
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to generate course');
+    }
+  }
+
+  // Custom lesson endpoints
+  static Future<CustomLesson> generateCustomLesson(int userId, String topic, String religion, String difficulty) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/custom-lessons/generate'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'user_id': userId,
+        'topic': topic,
+        'religion': religion,
+        'difficulty': difficulty,
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      return CustomLesson.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to generate custom lesson');
+    }
+  }
+
+  static Future<List<CustomLesson>> getUserCustomLessons(int userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/custom-lessons/$userId'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => CustomLesson.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load custom lessons');
+    }
+  }
+
+  // Chatbot endpoints
+  static Future<ChatbotResponse> startChatbotSession(int userId, String concern, String religion, List<ChatMessage>? conversationHistory) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/chatbot/start'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'user_id': userId,
+        'concern': concern,
+        'religion': religion,
+        'conversation_history': conversationHistory?.map((m) => m.toJson()).toList(),
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      return ChatbotResponse.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to start chatbot session');
+    }
+  }
+
+  static Future<ChatbotResponse> continueChatbotSession(int sessionId, String message) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/chatbot/$sessionId/continue'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({'message': message}),
+    );
+    
+    if (response.statusCode == 200) {
+      return ChatbotResponse.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to continue chatbot session');
+    }
+  }
+
+  static Future<List<ChatbotSession>> getUserChatbotSessions(int userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/chatbot/$userId/sessions'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => ChatbotSession.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load chatbot sessions');
+    }
+  }
+
+  // Streak management endpoints
+  static Future<Map<String, dynamic>> purchaseStreakSavers(int userId, int quantity) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/streak-savers/purchase'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'user_id': userId,
+        'quantity': quantity,
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to purchase streak savers');
+    }
+  }
+
+  static Future<Map<String, dynamic>> useStreakSaver(int userId) async {
+    final response = await http.post(Uri.parse('$baseUrl/streak-savers/use/$userId'));
+    
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to use streak saver');
+    }
+  }
+
+  static Future<Map<String, dynamic>> updateUserStreak(int userId) async {
+    final response = await http.post(Uri.parse('$baseUrl/users/$userId/update-streak'));
+    
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to update streak');
+    }
+  }
+
+  // Onboarding endpoints
+  static Future<Map<String, dynamic>> getNextOnboardingStep(String userInput, List<Map<String, String>> conversationHistory) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/onboarding/next_step'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'user_input': userInput,
+        'conversation_history': conversationHistory,
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to process onboarding step');
+    }
+  }
+
+  // User endpoints
+  static Future<User> createUser(String persona, {String? goals, String? learningStyle, String? religion}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/users/create'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'persona': persona,
+        'goals': goals,
+        'learning_style': learningStyle,
+        'religion': religion,
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      return User.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to create user');
     }
   }
 
   static Future<User> getUser(int userId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/users/$userId'),
-      );
-
-      if (response.statusCode == 200) {
-        return User.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to get user');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
+    final response = await http.get(Uri.parse('$baseUrl/users/$userId'));
+    if (response.statusCode == 200) {
+      return User.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load user');
     }
   }
 
-  static Future<User> updateUser(int userId, Map<String, dynamic> userData) async {
-    try {
-      final response = await http.put(
-        Uri.parse('$baseUrl/users/$userId'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(userData),
-      );
-
-      if (response.statusCode == 200) {
-        return User.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to update user');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
+  static Future<Map<String, dynamic>> getUserStats(int userId) async {
+    final response = await http.get(Uri.parse('$baseUrl/users/$userId/stats'));
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to load user stats');
     }
   }
 
-  static Future<UserStats> getUserStats(int userId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/users/$userId/stats'),
-      );
+  // Lesson endpoints
+  static Future<List<Lesson>> getLessons({String? religion, String? difficulty}) async {
+    final queryParams = <String, String>{};
+    if (religion != null) queryParams['religion'] = religion;
+    if (difficulty != null) queryParams['difficulty'] = difficulty;
 
-      if (response.statusCode == 200) {
-        return UserStats.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to get user stats');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
+    final uri = Uri.parse('$baseUrl/lessons').replace(queryParameters: queryParams);
+    final response = await http.get(uri);
+    
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Lesson.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load lessons');
     }
   }
 
-  static Future<Map<String, dynamic>> getUserProgressSummary(int userId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/users/$userId/progress-summary'),
-      );
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to get user progress summary');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  static Future<List<Reflection>> getUserReflections(int userId, {int limit = 10}) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/users/$userId/reflections?limit=$limit'),
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> reflectionsJson = json.decode(response.body);
-        return reflectionsJson.map((json) => Reflection.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to get user reflections');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  static Future<Reflection> createUserReflection(int userId, Map<String, dynamic> reflectionData) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/users/$userId/reflections'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(reflectionData),
-      );
-
-      if (response.statusCode == 200) {
-        return Reflection.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to create reflection');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  // Lesson management
-  static Future<List<Lesson>> getAllLessons({String? religion, String? difficulty}) async {
-    try {
-      final queryParams = <String, String>{};
-      if (religion != null) queryParams['religion'] = religion;
-      if (difficulty != null) queryParams['difficulty'] = difficulty;
-
-      final uri = Uri.parse('$baseUrl/lessons').replace(queryParameters: queryParams);
-      final response = await http.get(uri);
-
-      if (response.statusCode == 200) {
-        final List<dynamic> lessonsJson = json.decode(response.body);
-        return lessonsJson.map((json) => Lesson.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to get lessons');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  static Future<List<LessonRecommendation>> getRecommendedLessons(int userId, {int limit = 5}) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/lessons/recommended/$userId?limit=$limit'),
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> recommendationsJson = json.decode(response.body);
-        return recommendationsJson.map((json) => LessonRecommendation.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to get recommended lessons');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  static Future<List<LessonWithCompletion>> getLessonsByReligion(String religion, {int? userId}) async {
-    try {
-      final queryParams = <String, String>{};
-      if (userId != null) queryParams['user_id'] = userId.toString();
-
-      final uri = Uri.parse('$baseUrl/lessons/religion/$religion').replace(queryParameters: queryParams);
-      final response = await http.get(uri);
-
-      if (response.statusCode == 200) {
-        final List<dynamic> lessonsJson = json.decode(response.body);
-        return lessonsJson.map((json) => LessonWithCompletion.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to get lessons by religion');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
+  static Future<List<Map<String, dynamic>>> getRecommendedLessons(int userId, {int limit = 5}) async {
+    final response = await http.get(Uri.parse('$baseUrl/lessons/recommended/$userId?limit=$limit'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.cast<Map<String, dynamic>>();
+    } else {
+      throw Exception('Failed to load recommended lessons');
     }
   }
 
   static Future<Lesson> getLesson(int lessonId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/lessons/$lessonId'),
-      );
-
-      if (response.statusCode == 200) {
-        return Lesson.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to get lesson');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
+    final response = await http.get(Uri.parse('$baseUrl/lessons/$lessonId'));
+    if (response.statusCode == 200) {
+      return Lesson.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to load lesson');
     }
   }
 
-  static Future<Lesson?> getNextLesson(int userId, int lessonId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/lessons/$lessonId/next/$userId'),
-      );
-
-      if (response.statusCode == 200) {
-        return Lesson.fromJson(json.decode(response.body));
-      } else if (response.statusCode == 404) {
-        return null; // No next lesson found
-      } else {
-        throw Exception('Failed to get next lesson');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
+  static Future<Map<String, dynamic>> generateLesson(int userId, {String? topic, String? religion, String difficulty = 'beginner'}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/lessons/generate'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'user_id': userId,
+        'topic': topic,
+        'religion': religion,
+        'difficulty': difficulty,
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to generate lesson');
     }
   }
 
-  static Future<Lesson> generateLesson(Map<String, dynamic> requestData) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/lessons/generate'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(requestData),
-      );
-
-      if (response.statusCode == 200) {
-        return Lesson.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to generate lesson');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  static Future<List<Lesson>> searchLessons(String query, {String? religion}) async {
-    try {
-      final queryParams = {'query': query};
-      if (religion != null) queryParams['religion'] = religion;
-
-      final uri = Uri.parse('$baseUrl/lessons/search').replace(queryParameters: queryParams);
-      final response = await http.get(uri);
-
-      if (response.statusCode == 200) {
-        final List<dynamic> lessonsJson = json.decode(response.body);
-        return lessonsJson.map((json) => Lesson.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to search lessons');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  // Progress tracking
-  static Future<Progress> completeLesson(Map<String, dynamic> progressData) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/progress/complete_lesson'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(progressData),
-      );
-
-      if (response.statusCode == 200) {
-        return Progress.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to complete lesson');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
+  // Progress endpoints
+  static Future<Progress> completeLesson(ProgressCreate progressData) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/progress/complete_lesson'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode(progressData.toJson()),
+    );
+    
+    if (response.statusCode == 200) {
+      return Progress.fromJson(json.decode(response.body));
+    } else {
+      throw Exception('Failed to complete lesson');
     }
   }
 
   static Future<List<Progress>> getUserProgress(int userId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/progress/$userId'),
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> progressJson = json.decode(response.body);
-        return progressJson.map((json) => Progress.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to get user progress');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
+    final response = await http.get(Uri.parse('$baseUrl/progress/$userId'));
+    if (response.statusCode == 200) {
+      List<dynamic> data = json.decode(response.body);
+      return data.map((json) => Progress.fromJson(json)).toList();
+    } else {
+      throw Exception('Failed to load user progress');
     }
   }
 
-  static Future<Map<String, dynamic>> getLessonProgress(int userId, int lessonId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/progress/$userId/lesson/$lessonId'),
-      );
-
-      if (response.statusCode == 200) {
-        return json.decode(response.body);
-      } else {
-        throw Exception('Failed to get lesson progress');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  static Future<ProgressStats> getUserLessonStats(int userId) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/progress/$userId/stats'),
-      );
-
-      if (response.statusCode == 200) {
-        return ProgressStats.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to get user lesson stats');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  // Reflection management
-  static Future<Reflection> createReflection(Map<String, dynamic> reflectionData) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/reflections'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode(reflectionData),
-      );
-
-      if (response.statusCode == 200) {
-        return Reflection.fromJson(json.decode(response.body));
-      } else {
-        throw Exception('Failed to create reflection');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  static Future<List<Reflection>> getLessonReflections(int lessonId, {int limit = 10}) async {
-    try {
-      final response = await http.get(
-        Uri.parse('$baseUrl/reflections/lesson/$lessonId?limit=$limit'),
-      );
-
-      if (response.statusCode == 200) {
-        final List<dynamic> reflectionsJson = json.decode(response.body);
-        return reflectionsJson.map((json) => Reflection.fromJson(json)).toList();
-      } else {
-        throw Exception('Failed to get lesson reflections');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  // Sacred texts
-  static Future<List<Map<String, dynamic>>> searchSacredTexts(
-    String query, 
-    String? religion
-  ) async {
-    try {
-      final queryParams = {'query': query};
-      if (religion != null) {
-        queryParams['religion'] = religion;
-      }
-
-      final uri = Uri.parse('$baseUrl/texts/search').replace(queryParameters: queryParams);
-      final response = await http.get(uri);
-
-      if (response.statusCode == 200) {
-        final List<dynamic> textsJson = json.decode(response.body);
-        return textsJson.cast<Map<String, dynamic>>();
-      } else {
-        throw Exception('Failed to search sacred texts');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  static Future<List<Map<String, dynamic>>> getSacredTexts({String? religion, String? book}) async {
-    try {
-      final queryParams = <String, String>{};
-      if (religion != null) queryParams['religion'] = religion;
-      if (book != null) queryParams['book'] = book;
-
-      final uri = Uri.parse('$baseUrl/texts').replace(queryParameters: queryParams);
-      final response = await http.get(uri);
-
-      if (response.statusCode == 200) {
-        final List<dynamic> textsJson = json.decode(response.body);
-        return textsJson.cast<Map<String, dynamic>>();
-      } else {
-        throw Exception('Failed to get sacred texts');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
-  }
-
-  // AI endpoints
-  static Future<String> generateReflectionPrompt(int userId, int lessonId) async {
-    try {
-      final response = await http.post(
-        Uri.parse('$baseUrl/ai/reflection-prompt'),
-        headers: {'Content-Type': 'application/json'},
-        body: json.encode({
-          'user_id': userId,
-          'lesson_id': lessonId,
-        }),
-      );
-
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        return data['prompt'];
-      } else {
-        throw Exception('Failed to generate reflection prompt');
-      }
-    } catch (e) {
-      throw Exception('Network error: $e');
+  // Quiz endpoints
+  static Future<Map<String, dynamic>> generateQuiz(String topic, String lessonContent, {String? religion, String difficulty = 'beginner'}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/quizzes/generate'),
+      headers: {'Content-Type': 'application/json'},
+      body: json.encode({
+        'topic': topic,
+        'lesson_content': lessonContent,
+        'religion': religion,
+        'difficulty': difficulty,
+      }),
+    );
+    
+    if (response.statusCode == 200) {
+      return json.decode(response.body);
+    } else {
+      throw Exception('Failed to generate quiz');
     }
   }
 } 
