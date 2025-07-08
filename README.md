@@ -76,11 +76,6 @@ Share your worries and get personalized advice based on your religion's teaching
    flutter run
    ```
 
-## 📱 Screenshots
-
-![Home Screen](assets/elephant.png)
-
-*More screenshots coming soon...*
 
 ## 🎯 Vision
 
