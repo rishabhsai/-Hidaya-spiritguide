@@ -2,6 +2,9 @@ import 'package:flutter/material.dart';
 import '../models/religion.dart';
 import '../models/custom_lesson.dart';
 import '../services/api_service.dart';
+import '../widgets/markdown_widget.dart';
+import '../theme/duolingo_theme.dart';
+import 'quiz_screen.dart';
 
 class CustomLearningScreen extends StatefulWidget {
   final Religion religion;
@@ -804,13 +807,9 @@ class _CustomLessonDetailScreenState extends State<CustomLessonDetailScreen> {
                     ),
                   ),
                   const SizedBox(height: 16),
-                  Text(
-                    widget.lesson.content,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      height: 1.6,
-                      color: Color(0xFF1F2937),
-                    ),
+                  MarkdownWidget(
+                    data: widget.lesson.content,
+                    padding: const EdgeInsets.all(0),
                   ),
                 ],
               ),
@@ -887,7 +886,7 @@ class _CustomLessonDetailScreenState extends State<CustomLessonDetailScreen> {
 
             const SizedBox(height: 24),
 
-            // Quiz Questions
+            // Quiz Section
             Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
@@ -904,60 +903,94 @@ class _CustomLessonDetailScreenState extends State<CustomLessonDetailScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
-                    'Quiz Questions',
-                    style: TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF1F2937),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  ...widget.lesson.quizQuestions.asMap().entries.map((entry) {
-                    final index = entry.key;
-                    final question = entry.value;
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 12),
-                      child: Container(
-                        padding: const EdgeInsets.all(16),
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(8),
                         decoration: BoxDecoration(
-                          color: Colors.grey[50],
+                          color: DuolingoTheme.secondary.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
+                        child: Icon(
+                          Icons.quiz,
+                          color: DuolingoTheme.secondary,
+                          size: 24,
+                        ),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              'Q${index + 1}: $question',
-                              style: const TextStyle(
-                                fontSize: 15,
-                                fontWeight: FontWeight.w600,
-                                color: Color(0xFF1F2937),
+                              'Knowledge Quiz',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                                color: DuolingoTheme.textPrimary,
                               ),
                             ),
-                            const SizedBox(height: 8),
-                            TextField(
-                              decoration: InputDecoration(
-                                hintText: 'Write your answer here...',
-                                border: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: BorderSide(color: Colors.grey[300]!),
-                                ),
-                                focusedBorder: OutlineInputBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                  borderSide: const BorderSide(color: Color(0xFFF59E0B)),
-                                ),
+                            Text(
+                              '${widget.lesson.quizQuestions.length} questions to test your understanding',
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: DuolingoTheme.textSecondary,
                               ),
-                              maxLines: 2,
-                              onChanged: (value) {
-                                _userAnswers[index] = value;
-                              },
                             ),
                           ],
                         ),
                       ),
-                    );
-                  }),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  SizedBox(
+                    width: double.infinity,
+                    child: ElevatedButton(
+                      onPressed: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => QuizScreen(
+                              questions: widget.lesson.quizQuestions,
+                              lessonTitle: widget.lesson.topic,
+                              religion: widget.lesson.religion,
+                              onQuizCompleted: (answers) {
+                                // Handle quiz completion
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Quiz completed successfully!'),
+                                    backgroundColor: Colors.green,
+                                  ),
+                                );
+                              },
+                            ),
+                          ),
+                        );
+                      },
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: DuolingoTheme.secondary,
+                        foregroundColor: Colors.white,
+                        padding: const EdgeInsets.symmetric(vertical: 16),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          const Icon(Icons.play_arrow, size: 20),
+                          const SizedBox(width: 8),
+                          Text(
+                            'Start Quiz',
+                            style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),

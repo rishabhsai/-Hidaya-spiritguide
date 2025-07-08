@@ -5,6 +5,7 @@ import 'providers/user_provider.dart';
 import 'providers/lesson_provider.dart';
 import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
+import 'theme/duolingo_theme.dart';
 
 void main() {
   runApp(const SpiritGuideApp());
@@ -22,16 +23,7 @@ class SpiritGuideApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'SpiritGuide',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: const Color(0xFF6750A4),
-            brightness: Brightness.light,
-          ),
-          textTheme: GoogleFonts.latoTextTheme(
-            Theme.of(context).textTheme,
-          ),
-          useMaterial3: true,
-        ),
+        theme: DuolingoTheme.lightTheme,
         home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
       ),

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import '../models/religion.dart';
 import '../models/chatbot_session.dart';
 import '../services/api_service.dart';
+import '../widgets/markdown_widget.dart';
+import '../theme/duolingo_theme.dart';
 
 class SpiritualGuidanceScreen extends StatefulWidget {
   final Religion religion;
@@ -230,7 +232,7 @@ Is there a specific aspect of this topic you'd like to explore further?
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: DuolingoTheme.background,
       appBar: AppBar(
         title: Row(
           children: [
@@ -256,7 +258,7 @@ Is there a specific aspect of this topic you'd like to explore further?
             ),
           ],
         ),
-        backgroundColor: const Color(0xFF6750A4),
+        backgroundColor: DuolingoTheme.primary,
         foregroundColor: Colors.white,
         elevation: 0,
         actions: [
@@ -339,7 +341,7 @@ Is there a specific aspect of this topic you'd like to explore further?
                 const SizedBox(width: 8),
                 Container(
                   decoration: BoxDecoration(
-                    color: const Color(0xFF8B5CF6),
+                    color: DuolingoTheme.secondary,
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: IconButton(
@@ -369,16 +371,16 @@ Is there a specific aspect of this topic you'd like to explore further?
       alignment: message.isUser ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
-        constraints: const BoxConstraints(maxWidth: 300),
+        constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.8),
         child: Column(
           crossAxisAlignment: message.isUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: message.isUser ? const EdgeInsets.all(16) : const EdgeInsets.all(0),
               decoration: BoxDecoration(
                 color: message.isUser 
-                    ? const Color(0xFF8B5CF6)
-                    : Colors.white,
+                    ? DuolingoTheme.secondary
+                    : DuolingoTheme.surface,
                 borderRadius: BorderRadius.only(
                   topLeft: const Radius.circular(16),
                   topRight: const Radius.circular(16),
@@ -393,20 +395,25 @@ Is there a specific aspect of this topic you'd like to explore further?
                   ),
                 ],
               ),
-              child: Text(
-                message.content,
-                style: TextStyle(
-                  color: message.isUser ? Colors.white : const Color(0xFF1F2937),
-                  fontSize: 15,
-                ),
-              ),
+              child: message.isUser 
+                  ? Text(
+                      message.content,
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 15,
+                      ),
+                    )
+                  : MarkdownWidget(
+                      data: message.content,
+                      padding: const EdgeInsets.all(16),
+                    ),
             ),
             const SizedBox(height: 4),
             Text(
               _formatTime(message.timestamp),
               style: TextStyle(
                 fontSize: 12,
-                color: Colors.grey[600],
+                color: DuolingoTheme.textSecondary,
               ),
             ),
           ],
@@ -444,7 +451,7 @@ Is there a specific aspect of this topic you'd like to explore further?
               height: 20,
               child: CircularProgressIndicator(
                 strokeWidth: 2,
-                valueColor: AlwaysStoppedAnimation<Color>(Color(0xFF8B5CF6)),
+                valueColor: AlwaysStoppedAnimation<Color>(DuolingoTheme.secondary),
               ),
             ),
             const SizedBox(width: 8),

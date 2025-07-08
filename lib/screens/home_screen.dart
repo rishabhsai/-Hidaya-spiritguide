@@ -3,13 +3,16 @@ import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
 import '../models/religion.dart';
 import '../services/api_service.dart';
+import '../services/progress_service.dart';
 import '../widgets/streak_indicator.dart';
 import '../widgets/learning_mode_card.dart';
 import '../widgets/religion_selector.dart';
+import '../theme/duolingo_theme.dart';
 import 'progress_screen.dart';
 import 'comprehensive_course_screen.dart';
 import 'custom_learning_screen.dart';
 import 'spiritual_guidance_screen.dart';
+import 'streak_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -21,12 +24,14 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   List<Religion> religions = [];
   bool isLoading = true;
+  Map<String, dynamic>? nextLesson;
 
   @override
   void initState() {
     super.initState();
     _loadReligions();
     _updateUserStreak();
+    _loadNextLesson();
   }
 
   Future<void> _loadReligions() async {
@@ -90,28 +95,38 @@ class _HomeScreenState extends State<HomeScreen> {
     }
   }
 
+  Future<void> _loadNextLesson() async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    if (userProvider.user != null) {
+      final next = await ProgressService.getNextLesson(userProvider.user!.id);
+      setState(() {
+        nextLesson = next;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F9FC),
+      backgroundColor: DuolingoTheme.background,
       body: Consumer<UserProvider>(
         builder: (context, userProvider, child) {
           final user = userProvider.user;
           if (user == null) {
-            return const Center(child: CircularProgressIndicator());
-          }
+          return const Center(child: CircularProgressIndicator());
+        }
 
           return Column(
-            children: [
+              children: [
               // Custom App Bar with logo in top-left
               Container(
                 width: double.infinity,
                 padding: const EdgeInsets.fromLTRB(16, 50, 16, 16),
-                decoration: const BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                    colors: [Color(0xFF6750A4), Color(0xFF8B5CF6)],
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    colors: [DuolingoTheme.primary, DuolingoTheme.secondary],
                   ),
                 ),
                 child: Row(
@@ -128,9 +143,9 @@ class _HomeScreenState extends State<HomeScreen> {
                             color: Colors.black.withOpacity(0.1),
                             blurRadius: 8,
                             offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
+                ),
+              ],
+            ),
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(12),
                         child: Image.asset(
@@ -147,7 +162,7 @@ class _HomeScreenState extends State<HomeScreen> {
                       style: TextStyle(
                         color: Colors.white,
                         fontSize: 24,
-                        fontWeight: FontWeight.bold,
+                      fontWeight: FontWeight.bold,
                         letterSpacing: 0.5,
                       ),
                     ),
@@ -176,9 +191,9 @@ class _HomeScreenState extends State<HomeScreen> {
               SliverToBoxAdapter(
                 child: Padding(
                   padding: const EdgeInsets.all(16.0),
-                  child: Column(
+                      child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
+                        children: [
                       // Welcome Section
                       Container(
                         padding: const EdgeInsets.all(20),
@@ -208,8 +223,8 @@ class _HomeScreenState extends State<HomeScreen> {
                                 fontSize: 20,
                                 fontWeight: FontWeight.bold,
                               ),
-                            ),
-                            const SizedBox(height: 16),
+                          ),
+                          const SizedBox(height: 16),
                             Row(
                               children: [
                                 Expanded(
@@ -231,7 +246,7 @@ class _HomeScreenState extends State<HomeScreen> {
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
-                                    Text(
+                          Text(
                                       'Lessons completed',
                                       style: TextStyle(
                                         color: Colors.white.withOpacity(0.8),
@@ -256,39 +271,42 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
+                      
                       // Main Mode (Comprehensive Course)
                       _buildModeTile(
                         title: 'Comprehensive Course',
                         subtitle: 'Complete structured courses like Duolingo',
-                        description: 'Follow a complete curriculum with 200+ chapters covering the entire history, beliefs, and practices of your chosen religion.',
+                        description: 'Follow a complete curriculum with 20 chapters covering the entire history, beliefs, and practices of your chosen religion.',
                         icon: Icons.school,
-                        color: const Color(0xFF10B981),
+                        color: DuolingoTheme.primary,
                         onTap: () => _showReligionSelector(context, 'comprehensive'),
                       ),
                       const SizedBox(height: 12),
+                      
                       // Custom Mode
                       _buildModeTile(
                         title: 'Custom Lessons',
                         subtitle: 'Learn about specific topics',
                         description: 'Choose any topic or experience you want to learn about. AI generates personalized lessons with quizzes and practical tasks.',
                         icon: Icons.auto_awesome,
-                        color: const Color(0xFFF59E0B),
+                        color: DuolingoTheme.secondary,
                         onTap: () => _showReligionSelector(context, 'custom'),
                       ),
                       const SizedBox(height: 12),
+                      
                       // Spiritual Guidance Mode
                       _buildModeTile(
                         title: 'Spiritual Guidance',
                         subtitle: 'Chat with AI spiritual advisor',
                         description: 'Get personalized spiritual guidance through conversation. AI identifies your needs and provides tailored lessons from your chosen faith.',
                         icon: Icons.psychology,
-                        color: const Color(0xFF8B5CF6),
+                        color: DuolingoTheme.accent,
                         onTap: () => _showReligionSelector(context, 'chatbot'),
                       ),
 
                       const SizedBox(height: 24),
                       // Continue Section
-                      if (user.totalLessonsCompleted > 0) ...[
+                      if (nextLesson != null) ...[
                         const Text(
                           'Continue Learning',
                           style: TextStyle(
@@ -298,65 +316,8 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                         const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            color: Colors.white,
-                            borderRadius: BorderRadius.circular(12),
-                            boxShadow: [
-                              BoxShadow(
-                                color: Colors.black.withOpacity(0.05),
-                                blurRadius: 10,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Row(
-                            children: [
-                              Container(
-                                padding: const EdgeInsets.all(12),
-                                decoration: BoxDecoration(
-                                  color: const Color(0xFF6750A4).withOpacity(0.1),
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                                child: const Icon(
-                                  Icons.play_arrow,
-                                  color: Color(0xFF6750A4),
-                                  size: 24,
-                                ),
-                              ),
-                              const SizedBox(width: 16),
-                              Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    const Text(
-                                      'Continue where you left off',
-                                      style: TextStyle(
-                                        fontSize: 16,
-                                        fontWeight: FontWeight.w600,
-                                        color: Color(0xFF1F2937),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      'Resume your spiritual journey',
-                                      style: TextStyle(
-                                        fontSize: 14,
-                                        color: Colors.grey[600],
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                              Icon(
-                                Icons.arrow_forward_ios,
-                                color: Colors.grey[400],
-                                size: 16,
-                              ),
-                            ],
-                          ),
-                        ),
+                        _buildContinueCard(),
+                        const SizedBox(height: 24),
                       ],
                       const SizedBox(height: 24),
                       // Quick Actions
@@ -381,7 +342,12 @@ class _HomeScreenState extends State<HomeScreen> {
                               'Streak Savers',
                               Icons.favorite,
                               const Color(0xFFEF4444),
-                              () => _showStreakSaverDialog(context),
+                              () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const StreakScreen(),
+                                ),
+                              ),
                             ),
                           ),
                         ],
@@ -395,10 +361,10 @@ class _HomeScreenState extends State<HomeScreen> {
                 ),
               ),
             ],
-          );
-        },
-      ),
-    );
+                            );
+                          },
+                        ),
+                      );
   }
 
   Widget _buildModeTile({
@@ -418,23 +384,31 @@ class _HomeScreenState extends State<HomeScreen> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.04),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
+              color: Colors.black.withOpacity(0.08),
+              blurRadius: 16,
+              offset: const Offset(0, 4),
             ),
           ],
         ),
         child: Row(
           children: [
+            // Mode Icon
             Container(
-              padding: const EdgeInsets.all(14),
+              width: 60,
+              height: 60,
               decoration: BoxDecoration(
-                color: color.withOpacity(0.12),
-                borderRadius: BorderRadius.circular(12),
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(16),
               ),
-              child: Icon(icon, color: color, size: 32),
+              child: Icon(
+                icon,
+                size: 30,
+                color: color,
+              ),
             ),
-            const SizedBox(width: 20),
+            const SizedBox(width: 16),
+            
+            // Mode Content
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -452,21 +426,38 @@ class _HomeScreenState extends State<HomeScreen> {
                     subtitle,
                     style: TextStyle(
                       fontSize: 14,
-                      color: Colors.grey[700],
+                      color: Colors.grey[600],
+                      fontWeight: FontWeight.w500,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 8),
                   Text(
                     description,
                     style: TextStyle(
-                      fontSize: 13,
-                      color: Colors.grey[600],
+                      fontSize: 12,
+                      color: Colors.grey[500],
+                      height: 1.3,
                     ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios, color: Color(0xFF8B5CF6), size: 18),
+            
+            // Arrow Icon
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: Icon(
+                Icons.arrow_forward_ios,
+                size: 16,
+                color: color,
+              ),
+            ),
           ],
         ),
       ),
@@ -600,28 +591,185 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _showStreakSaverDialog(BuildContext context) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Purchase Streak Savers'),
-        content: const Text('Protect your streak with streak savers. Each saver prevents your streak from breaking when you miss a day.'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // TODO: Implement streak saver purchase
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Streak saver purchase coming soon!')),
-              );
-            },
-            child: const Text('Purchase'),
-          ),
-        ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const StreakScreen(),
       ),
     );
+  }
+
+  Widget _buildContinueCard() {
+    if (nextLesson == null) return const SizedBox.shrink();
+
+    final lessonType = nextLesson!['type'];
+    final religion = nextLesson!['religion'];
+    final description = nextLesson!['description'] ?? 'Continue your learning journey';
+
+    IconData icon;
+    Color color;
+    String title;
+
+    switch (lessonType) {
+      case 'comprehensive':
+        icon = Icons.school;
+        color = DuolingoTheme.primary;
+        title = nextLesson!['chapter_title'] ?? 'Next Chapter';
+        break;
+      case 'custom':
+        icon = Icons.auto_awesome;
+        color = DuolingoTheme.secondary;
+        title = 'Create Custom Lesson';
+        break;
+      case 'chatbot':
+        icon = Icons.psychology;
+        color = DuolingoTheme.accent;
+        title = 'Spiritual Guidance';
+        break;
+      default:
+        icon = Icons.play_arrow;
+        color = DuolingoTheme.primary;
+        title = 'Continue Learning';
+    }
+
+    return GestureDetector(
+      onTap: () => _handleContinueLesson(),
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [color.withOpacity(0.1), color.withOpacity(0.05)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: color.withOpacity(0.2), width: 1),
+        ),
+        child: Row(
+          children: [
+            // Continue Icon
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                color: color,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: color.withOpacity(0.3),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Icon(
+                Icons.play_arrow,
+                size: 30,
+                color: Colors.white,
+              ),
+            ),
+            const SizedBox(width: 16),
+            
+            // Continue Content
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    'Continue where you left off',
+                    style: TextStyle(
+                      fontSize: 16,
+                      fontWeight: FontWeight.w600,
+                      color: color,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    '$religion • $description',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            
+            // Progress indicator for comprehensive
+            if (lessonType == 'comprehensive') ...[
+              const SizedBox(width: 12),
+              FutureBuilder<double>(
+                future: ProgressService.getCompletionPercentage(
+                  Provider.of<UserProvider>(context, listen: false).user!.id,
+                  religion,
+                ),
+                builder: (context, snapshot) {
+                  final percentage = snapshot.data ?? 0.0;
+                  return Column(
+                    children: [
+                      CircularProgressIndicator(
+                        value: percentage / 100,
+                        backgroundColor: Colors.grey[300],
+                        valueColor: AlwaysStoppedAnimation<Color>(color),
+                        strokeWidth: 3,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        '${percentage.toInt()}%',
+                        style: TextStyle(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w600,
+                          color: color,
+                        ),
+                      ),
+                    ],
+                  );
+                },
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _handleContinueLesson() {
+    if (nextLesson == null) return;
+
+    final lessonType = nextLesson!['type'];
+    final religion = nextLesson!['religion'];
+
+    // Find the religion object
+    final religionObj = religions.firstWhere(
+      (r) => r.name == religion,
+      orElse: () => Religion(
+        id: 1,
+        name: religion,
+        description: '$religion teachings',
+        isActive: true,
+        createdAt: DateTime.now(),
+      ),
+    );
+
+    switch (lessonType) {
+      case 'comprehensive':
+        _startComprehensiveCourse(religionObj);
+        break;
+      case 'custom':
+        _startCustomLesson(religionObj);
+        break;
+      case 'chatbot':
+        _startChatbotSession(religionObj);
+        break;
+    }
   }
 } 

@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
 import '../models/religion.dart';
-import '../models/course.dart';
-import '../models/chapter.dart';
+import '../models/lesson.dart';
 import '../services/api_service.dart';
+import '../screens/lesson_screen.dart';
+import '../services/progress_service.dart';
+import 'package:provider/provider.dart';
+import '../providers/user_provider.dart';
 
 class ComprehensiveCourseScreen extends StatefulWidget {
   final Religion religion;
@@ -17,155 +20,50 @@ class ComprehensiveCourseScreen extends StatefulWidget {
 }
 
 class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
-  List<Chapter> chapters = [];
+  List<Lesson> lessons = [];
   bool isLoading = true;
   String? error;
+  int completedLessons = 0;
 
   @override
   void initState() {
     super.initState();
-    _loadChapters();
+    _loadLessons();
   }
 
-  Future<void> _loadChapters() async {
+  Future<void> _loadLessons() async {
     try {
       setState(() {
         isLoading = true;
         error = null;
       });
 
-      // TODO: Replace with actual API call when backend is ready
-      await Future.delayed(const Duration(seconds: 1));
+      // Load lessons from API
+      final fetchedLessons = await ApiService.getLessons(widget.religion.name.toLowerCase());
       
-      // Generate mock chapters for now
-      final mockChapters = _generateMockChapters();
+      // Filter only comprehensive lessons and limit to 20
+      final comprehensiveLessons = fetchedLessons
+          .where((lesson) => lesson.lessonType == 'comprehensive')
+          .take(20)
+          .toList();
+      
+      // Sort by ID to maintain order
+      comprehensiveLessons.sort((a, b) => a.id.compareTo(b.id));
+      
+      // Count completed lessons (mock for now - would come from user progress)
+      final completed = comprehensiveLessons.where((lesson) => lesson.id <= 3).length;
       
       setState(() {
-        chapters = mockChapters;
+        lessons = comprehensiveLessons;
+        completedLessons = completed;
         isLoading = false;
       });
     } catch (e) {
       setState(() {
-        error = 'Failed to load chapters: ${e.toString()}';
+        error = 'Failed to load lessons: ${e.toString()}';
         isLoading = false;
       });
     }
-  }
-
-  List<Chapter> _generateMockChapters() {
-    final List<Chapter> mockChapters = [];
-    
-    // Generate 200 chapters with different categories
-    final categories = [
-      'Foundations',
-      'History',
-      'Beliefs',
-      'Practices',
-      'Scriptures',
-      'Philosophy',
-      'Ethics',
-      'Rituals',
-      'Community',
-      'Modern Applications'
-    ];
-
-    for (int i = 1; i <= 200; i++) {
-      final category = categories[(i - 1) % categories.length];
-      final level = i <= 50 ? 'Beginner' : i <= 100 ? 'Intermediate' : 'Advanced';
-      
-      mockChapters.add(Chapter(
-        id: i,
-        courseId: 1,
-        title: 'Chapter $i: ${_generateChapterTitle(i, category)}',
-        content: 'This is chapter $i content...',
-        category: category,
-        difficulty: level,
-        estimatedTime: 15 + (i % 10),
-        isCompleted: i <= 5, // First 5 chapters completed for demo
-        order: i,
-        createdAt: DateTime.now(),
-      ));
-    }
-    
-    return mockChapters;
-  }
-
-  String _generateChapterTitle(int chapterNumber, String category) {
-    final titles = {
-      'Foundations': [
-        'Introduction to ${widget.religion.name}',
-        'Core Principles',
-        'Basic Beliefs',
-        'Fundamental Concepts',
-        'Essential Teachings'
-      ],
-      'History': [
-        'Historical Origins',
-        'Early Development',
-        'Key Historical Figures',
-        'Major Events',
-        'Historical Timeline'
-      ],
-      'Beliefs': [
-        'Central Beliefs',
-        'Theological Concepts',
-        'Divine Nature',
-        'Human Nature',
-        'Purpose of Life'
-      ],
-      'Practices': [
-        'Daily Practices',
-        'Worship Methods',
-        'Meditation Techniques',
-        'Prayer Forms',
-        'Ritual Practices'
-      ],
-      'Scriptures': [
-        'Sacred Texts',
-        'Scriptural Interpretation',
-        'Key Passages',
-        'Textual Analysis',
-        'Scriptural Wisdom'
-      ],
-      'Philosophy': [
-        'Philosophical Foundations',
-        'Ethical Framework',
-        'Metaphysical Concepts',
-        'Epistemology',
-        'Philosophical Debates'
-      ],
-      'Ethics': [
-        'Moral Principles',
-        'Ethical Guidelines',
-        'Virtue Development',
-        'Moral Decision Making',
-        'Ethical Dilemmas'
-      ],
-      'Rituals': [
-        'Ceremonial Practices',
-        'Ritual Significance',
-        'Sacred Ceremonies',
-        'Ritual Preparation',
-        'Ceremonial Objects'
-      ],
-      'Community': [
-        'Community Structure',
-        'Leadership Roles',
-        'Social Organization',
-        'Community Values',
-        'Collective Practices'
-      ],
-      'Modern Applications': [
-        'Contemporary Relevance',
-        'Modern Challenges',
-        'Adaptation to Today',
-        'Current Issues',
-        'Future Directions'
-      ]
-    };
-
-    final categoryTitles = titles[category] ?? ['General Topic'];
-    return categoryTitles[chapterNumber % categoryTitles.length];
   }
 
   @override
@@ -215,7 +113,7 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
                       ),
                       const SizedBox(height: 16),
                       ElevatedButton(
-                        onPressed: _loadChapters,
+                        onPressed: _loadLessons,
                         child: const Text('Retry'),
                       ),
                     ],
@@ -234,7 +132,7 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
                       ),
                       child: Column(
                         children: [
-                          // Religion Icon Placeholder
+                          // Religion Icon
                           Container(
                             width: 60,
                             height: 60,
@@ -265,7 +163,7 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
                           ),
                           const SizedBox(height: 8),
                           Text(
-                            '200 chapters covering the complete history, beliefs, and practices',
+                            '20 comprehensive chapters covering core beliefs, history, and practices',
                             style: TextStyle(
                               fontSize: 16,
                               color: Colors.white.withOpacity(0.9),
@@ -278,7 +176,7 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
                             mainAxisAlignment: MainAxisAlignment.center,
                             children: [
                               Text(
-                                '${chapters.where((c) => c.isCompleted).length}',
+                                '$completedLessons',
                                 style: const TextStyle(
                                   fontSize: 24,
                                   fontWeight: FontWeight.bold,
@@ -286,7 +184,7 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
                                 ),
                               ),
                               Text(
-                                ' / ${chapters.length} completed',
+                                ' / ${lessons.length} completed',
                                 style: TextStyle(
                                   fontSize: 16,
                                   color: Colors.white.withOpacity(0.9),
@@ -297,7 +195,7 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
                         ],
                       ),
                     ),
-                    // Chapters Grid
+                    // Lessons Grid
                     Expanded(
                       child: GridView.builder(
                         padding: const EdgeInsets.all(16),
@@ -307,12 +205,14 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
                           crossAxisSpacing: 12,
                           mainAxisSpacing: 12,
                         ),
-                        itemCount: chapters.length,
+                        itemCount: lessons.length,
                         itemBuilder: (context, index) {
-                          final chapter = chapters[index];
-                          return _ChapterCard(
-                            chapter: chapter,
-                            onTap: () => _openChapter(chapter),
+                          final lesson = lessons[index];
+                          final isCompleted = lesson.id <= 3; // Mock completion status
+                          return _LessonCard(
+                            lesson: lesson,
+                            isCompleted: isCompleted,
+                            onTap: () => _openLesson(lesson),
                           );
                         },
                       ),
@@ -322,23 +222,44 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
     );
   }
 
-  void _openChapter(Chapter chapter) {
-    // TODO: Navigate to chapter detail screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('Opening ${chapter.title}...'),
-        duration: const Duration(seconds: 1),
+  void _openLesson(Lesson lesson) async {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final user = userProvider.user;
+    
+    if (user != null) {
+      // Save progress before opening lesson
+      await ProgressService.saveProgress(
+        user.id,
+        lesson.id,
+        widget.religion.name,
+        'comprehensive',
+        chapterTitle: lesson.title,
+        chapterOrder: lesson.id,
+        difficulty: lesson.difficulty,
+      );
+    }
+    
+    // Navigate to lesson screen
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LessonScreen(
+          lesson: lesson,
+          religion: widget.religion,
+        ),
       ),
     );
   }
 }
 
-class _ChapterCard extends StatelessWidget {
-  final Chapter chapter;
+class _LessonCard extends StatelessWidget {
+  final Lesson lesson;
+  final bool isCompleted;
   final VoidCallback onTap;
 
-  const _ChapterCard({
-    required this.chapter,
+  const _LessonCard({
+    required this.lesson,
+    required this.isCompleted,
     required this.onTap,
   });
 
@@ -348,7 +269,7 @@ class _ChapterCard extends StatelessWidget {
       onTap: onTap,
       child: Container(
         decoration: BoxDecoration(
-          color: chapter.isCompleted ? const Color(0xFF10B981) : Colors.white,
+          color: isCompleted ? const Color(0xFF10B981) : Colors.white,
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
@@ -369,23 +290,23 @@ class _ChapterCard extends StatelessWidget {
                   Container(
                     padding: const EdgeInsets.all(8),
                     decoration: BoxDecoration(
-                      color: chapter.isCompleted 
+                      color: isCompleted 
                           ? Colors.white.withOpacity(0.2)
                           : const Color(0xFF6750A4).withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
-                      '${chapter.order}',
+                      '${lesson.id}',
                       style: TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.bold,
-                        color: chapter.isCompleted 
+                        color: isCompleted 
                             ? Colors.white
                             : const Color(0xFF6750A4),
                       ),
                     ),
                   ),
-                  if (chapter.isCompleted)
+                  if (isCompleted)
                     const Icon(
                       Icons.check_circle,
                       color: Colors.white,
@@ -396,11 +317,11 @@ class _ChapterCard extends StatelessWidget {
               const SizedBox(height: 8),
               Expanded(
                 child: Text(
-                  chapter.title,
+                  lesson.title,
                   style: TextStyle(
                     fontSize: 14,
                     fontWeight: FontWeight.w600,
-                    color: chapter.isCompleted 
+                    color: isCompleted 
                         ? Colors.white
                         : const Color(0xFF1F2937),
                   ),
@@ -410,10 +331,10 @@ class _ChapterCard extends StatelessWidget {
               ),
               const SizedBox(height: 4),
               Text(
-                chapter.category,
+                lesson.difficulty.toUpperCase(),
                 style: TextStyle(
                   fontSize: 12,
-                  color: chapter.isCompleted 
+                  color: isCompleted 
                       ? Colors.white.withOpacity(0.8)
                       : Colors.grey[600],
                 ),
@@ -424,16 +345,16 @@ class _ChapterCard extends StatelessWidget {
                   Icon(
                     Icons.access_time,
                     size: 12,
-                    color: chapter.isCompleted 
+                    color: isCompleted 
                         ? Colors.white.withOpacity(0.8)
                         : Colors.grey[600],
                   ),
                   const SizedBox(width: 4),
                   Text(
-                    '${chapter.estimatedTime} min',
+                    '${lesson.duration} min',
                     style: TextStyle(
                       fontSize: 12,
-                      color: chapter.isCompleted 
+                      color: isCompleted 
                           ? Colors.white.withOpacity(0.8)
                           : Colors.grey[600],
                     ),
