@@ -46,7 +46,11 @@ class UserService:
                 total_time_spent=0,
                 average_rating=0.0,
                 favorite_religion=None,
-                learning_streak=0
+                learning_streak=0,
+                total_lessons_completed=0,
+                longest_streak=0,
+                lessons_this_week=0,
+                lessons_this_month=0
             )
         
         # Get completed lessons count
@@ -75,13 +79,26 @@ class UserService:
         # Calculate learning streak (consecutive days with activity)
         learning_streak = self._calculate_learning_streak(user_id)
         
+        # Calculate longest streak
+        longest_streak = self._calculate_longest_streak(user_id)
+        
+        # Calculate lessons this week
+        lessons_this_week = self._get_lessons_this_week(user_id)
+        
+        # Calculate lessons this month
+        lessons_this_month = self._get_lessons_this_month(user_id)
+        
         return UserStats(
             completed_lessons=completed_lessons,
             current_streak=current_streak,
             total_time_spent=total_time,
-            average_rating=float(avg_rating) if avg_rating else None,
+            average_rating=float(avg_rating) if avg_rating else 0.0,
             favorite_religion=favorite_religion,
-            learning_streak=learning_streak
+            learning_streak=learning_streak,
+            total_lessons_completed=completed_lessons,
+            longest_streak=longest_streak,
+            lessons_this_week=lessons_this_week,
+            lessons_this_month=lessons_this_month
         )
     
     def _calculate_current_streak(self, user_id: int) -> int:
@@ -150,6 +167,28 @@ class UserService:
         ).group_by(Lesson.religion).order_by(desc('lesson_count')).first()
         
         return result.religion if result else None
+    
+    def _calculate_longest_streak(self, user_id: int) -> int:
+        """Calculate the user's longest learning streak"""
+        return self._calculate_learning_streak(user_id)
+    
+    def _get_lessons_this_week(self, user_id: int) -> int:
+        """Get lessons completed this week"""
+        from datetime import datetime, timedelta
+        week_start = datetime.utcnow().date() - timedelta(days=datetime.utcnow().weekday())
+        return self.db.query(UserProgress).filter(
+            UserProgress.user_id == user_id,
+            func.date(UserProgress.completed_at) >= week_start
+        ).count()
+    
+    def _get_lessons_this_month(self, user_id: int) -> int:
+        """Get lessons completed this month"""
+        from datetime import datetime
+        month_start = datetime.utcnow().date().replace(day=1)
+        return self.db.query(UserProgress).filter(
+            UserProgress.user_id == user_id,
+            func.date(UserProgress.completed_at) >= month_start
+        ).count()
     
     def update_user_stats(self, user_id: int) -> None:
         """Update user's statistics after completing a lesson"""

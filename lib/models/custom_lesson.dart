@@ -7,6 +7,7 @@ class CustomLesson {
   final String content;
   final List<String> exercises;
   final List<Map<String, dynamic>> quiz;
+  final List<String> quizQuestions; // Simple quiz questions as strings
   final int estimatedTime;
   final DateTime createdAt;
 
@@ -18,10 +19,12 @@ class CustomLesson {
     required this.difficulty,
     required this.content,
     required this.exercises,
-    required this.quiz,
+    List<Map<String, dynamic>>? quiz,
+    List<String>? quizQuestions,
     required this.estimatedTime,
     required this.createdAt,
-  });
+  }) : quiz = quiz ?? [],
+       quizQuestions = quizQuestions ?? [];
 
   factory CustomLesson.fromJson(Map<String, dynamic> json) {
     return CustomLesson(
@@ -31,8 +34,9 @@ class CustomLesson {
       religion: json['religion'],
       difficulty: json['difficulty'],
       content: json['content'],
-      exercises: List<String>.from(json['exercises']),
-      quiz: List<Map<String, dynamic>>.from(json['quiz']),
+      exercises: List<String>.from(json['exercises'] ?? []),
+      quiz: List<Map<String, dynamic>>.from(json['quiz'] ?? []),
+      quizQuestions: List<String>.from(json['quiz_questions'] ?? []),
       estimatedTime: json['estimated_time'],
       createdAt: DateTime.parse(json['created_at']),
     );
@@ -48,6 +52,7 @@ class CustomLesson {
       'content': content,
       'exercises': exercises,
       'quiz': quiz,
+      'quiz_questions': quizQuestions,
       'estimated_time': estimatedTime,
       'created_at': createdAt.toIso8601String(),
     };
@@ -62,6 +67,7 @@ class CustomLesson {
     String? content,
     List<String>? exercises,
     List<Map<String, dynamic>>? quiz,
+    List<String>? quizQuestions,
     int? estimatedTime,
     DateTime? createdAt,
   }) {
@@ -74,6 +80,7 @@ class CustomLesson {
       content: content ?? this.content,
       exercises: exercises ?? this.exercises,
       quiz: quiz ?? this.quiz,
+      quizQuestions: quizQuestions ?? this.quizQuestions,
       estimatedTime: estimatedTime ?? this.estimatedTime,
       createdAt: createdAt ?? this.createdAt,
     );

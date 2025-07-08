@@ -140,44 +140,37 @@ Choose one aspect of $topic and practice it for one week. Document your experien
 ## Conclusion
 $topic is a fundamental aspect of ${widget.religion.name} that offers profound insights and practical benefits for spiritual growth. By understanding and practicing this concept, you can deepen your connection to your faith and enhance your personal development.
 
-Remember that learning is a journey, and every step you take brings you closer to deeper understanding and spiritual fulfillment.
+Remember to practice regularly and seek guidance from knowledgeable teachers when needed.
       ''',
+      estimatedTime: _selectedDifficulty == 'beginner' ? 15 : _selectedDifficulty == 'intermediate' ? 25 : 35,
       exercises: [
-        'Personal reflection on the topic',
-        'Research project comparing different perspectives',
-        'Practical application for one week',
-        'Discussion with community members',
-        'Written summary of learnings'
+        'Reflect on personal experiences with $topic',
+        'Research historical context and background',
+        'Practice daily application techniques',
+        'Connect with community members for discussion',
+        'Journal about insights and learnings',
       ],
-      quiz: [
-        {
-          'question': 'What is the primary purpose of $topic in ${widget.religion.name}?',
-          'options': [
-            'To follow tradition',
-            'To deepen spiritual understanding',
-            'To impress others',
-            'To pass time'
-          ],
-          'correct_answer': 1
-        },
-        {
-          'question': 'How does $topic relate to other spiritual practices?',
-          'options': [
-            'It has no connection',
-            'It complements other practices',
-            'It replaces other practices',
-            'It conflicts with other practices'
-          ],
-          'correct_answer': 1
-        }
+      quizQuestions: [
+        'What is the primary purpose of $topic in ${widget.religion.name}?',
+        'How does $topic relate to other spiritual practices?',
+        'What are the main challenges people face when practicing $topic?',
+        'How can $topic be adapted for modern life?',
       ],
-      estimatedTime: 45,
       createdAt: DateTime.now(),
     );
   }
 
   void _selectTopic(String topic) {
     _topicController.text = topic;
+  }
+
+  void _openCustomLesson(CustomLesson lesson) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomLessonDetailScreen(lesson: lesson),
+      ),
+    );
   }
 
   @override
@@ -563,10 +556,7 @@ Remember that learning is a journey, and every step you take brings you closer t
             width: double.infinity,
             child: ElevatedButton(
               onPressed: () {
-                // TODO: Navigate to lesson detail screen
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Opening lesson...')),
-                );
+                _openCustomLesson(lesson);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFFF59E0B),
@@ -579,6 +569,479 @@ Remember that learning is a journey, and every step you take brings you closer t
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class CustomLessonDetailScreen extends StatefulWidget {
+  final CustomLesson lesson;
+
+  const CustomLessonDetailScreen({
+    super.key,
+    required this.lesson,
+  });
+
+  @override
+  State<CustomLessonDetailScreen> createState() => _CustomLessonDetailScreenState();
+}
+
+class _CustomLessonDetailScreenState extends State<CustomLessonDetailScreen> {
+  final TextEditingController _reflectionController = TextEditingController();
+  int _rating = 0;
+  bool _isCompleted = false;
+  int _currentQuestionIndex = 0;
+  List<String?> _userAnswers = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _userAnswers = List.filled(widget.lesson.quizQuestions.length, null);
+  }
+
+  @override
+  void dispose() {
+    _reflectionController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _completeLesson() async {
+    if (_rating == 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Please rate this lesson before completing it.'),
+        ),
+      );
+      return;
+    }
+
+    setState(() {
+      _isCompleted = true;
+    });
+
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Custom lesson completed successfully!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+      Navigator.pop(context);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: const Color(0xFFF7F9FC),
+      appBar: AppBar(
+        title: Text(widget.lesson.topic),
+        backgroundColor: const Color(0xFFF59E0B),
+        foregroundColor: Colors.white,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Lesson header
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFFF59E0B), Color(0xFFF97316)],
+                ),
+                borderRadius: BorderRadius.circular(16),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        child: Text(
+                          widget.lesson.religion.toUpperCase(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      const Spacer(),
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.2),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            const Icon(
+                              Icons.access_time,
+                              size: 16,
+                              color: Colors.white,
+                            ),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${widget.lesson.estimatedTime}m',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                color: Colors.white,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.lesson.topic,
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    'Custom lesson • ${widget.lesson.difficulty}',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white.withOpacity(0.9),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Lesson content
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Lesson Content',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    widget.lesson.content,
+                    style: const TextStyle(
+                      fontSize: 16,
+                      height: 1.6,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Exercises
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Practical Exercises',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...widget.lesson.exercises.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final exercise = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(6),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFFF59E0B).withOpacity(0.1),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              '${index + 1}',
+                              style: const TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                                color: Color(0xFFF59E0B),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              exercise,
+                              style: const TextStyle(
+                                fontSize: 15,
+                                color: Color(0xFF1F2937),
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Quiz Questions
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Quiz Questions',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  ...widget.lesson.quizQuestions.asMap().entries.map((entry) {
+                    final index = entry.key;
+                    final question = entry.value;
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 12),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.grey[50],
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              'Q${index + 1}: $question',
+                              style: const TextStyle(
+                                fontSize: 15,
+                                fontWeight: FontWeight.w600,
+                                color: Color(0xFF1F2937),
+                              ),
+                            ),
+                            const SizedBox(height: 8),
+                            TextField(
+                              decoration: InputDecoration(
+                                hintText: 'Write your answer here...',
+                                border: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: BorderSide(color: Colors.grey[300]!),
+                                ),
+                                focusedBorder: OutlineInputBorder(
+                                  borderRadius: BorderRadius.circular(8),
+                                  borderSide: const BorderSide(color: Color(0xFFF59E0B)),
+                                ),
+                              ),
+                              maxLines: 2,
+                              onChanged: (value) {
+                                _userAnswers[index] = value;
+                              },
+                            ),
+                          ],
+                        ),
+                      ),
+                    );
+                  }),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Rating
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Rate this lesson',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      return IconButton(
+                        onPressed: () {
+                          setState(() {
+                            _rating = index + 1;
+                          });
+                        },
+                        icon: Icon(
+                          index < _rating ? Icons.star : Icons.star_border,
+                          size: 32,
+                          color: index < _rating
+                              ? const Color(0xFFF59E0B)
+                              : Colors.grey[400],
+                        ),
+                      );
+                    }),
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 24),
+
+            // Reflection
+            Container(
+              padding: const EdgeInsets.all(20),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.05),
+                    blurRadius: 10,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Reflection (Optional)',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 16),
+                  TextField(
+                    controller: _reflectionController,
+                    decoration: InputDecoration(
+                      hintText: 'What did you learn from this lesson? How will you apply it in your life?',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: BorderSide(color: Colors.grey[300]!),
+                      ),
+                      focusedBorder: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(8),
+                        borderSide: const BorderSide(color: Color(0xFFF59E0B)),
+                      ),
+                    ),
+                    maxLines: 4,
+                  ),
+                ],
+              ),
+            ),
+
+            const SizedBox(height: 32),
+
+            // Complete button
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: _isCompleted ? null : _completeLesson,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: const Color(0xFFF59E0B),
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+                child: Text(
+                  _isCompleted ? 'Completed!' : 'Complete Lesson',
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(height: 32),
+          ],
+        ),
       ),
     );
   }

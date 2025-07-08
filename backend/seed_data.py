@@ -1,8 +1,46 @@
 import json
 import os
 from sqlalchemy.orm import Session
-from models import create_tables, SessionLocal, User, Lesson, SacredText
+from models import create_tables, SessionLocal, User, Lesson, SacredText, Religion
 from datetime import datetime
+
+def seed_religions(db: Session):
+    """Seed the database with religions"""
+    # Check if religions already exist
+    existing_religions = db.query(Religion).count()
+    if existing_religions > 0:
+        print(f"Found {existing_religions} existing religions, skipping religion seeding")
+        return
+    
+    # Create default religions for the app
+    religions_data = [
+        {
+            "name": "Islam",
+            "description": "Islamic teachings and practices",
+            "is_active": True
+        },
+        {
+            "name": "Christianity", 
+            "description": "Christian faith and traditions",
+            "is_active": True
+        },
+        {
+            "name": "Hinduism",
+            "description": "Hindu traditions and beliefs", 
+            "is_active": True
+        }
+    ]
+    
+    # Create religion objects
+    religions = []
+    for religion_data in religions_data:
+        religion = Religion(**religion_data)
+        religions.append(religion)
+    
+    # Add to database
+    db.add_all(religions)
+    db.commit()
+    print(f"Seeded {len(religions)} religions")
 
 def seed_lessons(db: Session):
     """Seed the database with lessons"""
@@ -224,6 +262,7 @@ def main():
     db = SessionLocal()
     try:
         # Seed data
+        seed_religions(db)
         seed_lessons(db)
         seed_sacred_texts(db)
         create_sample_user(db)

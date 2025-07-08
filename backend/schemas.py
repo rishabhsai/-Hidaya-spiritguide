@@ -201,6 +201,10 @@ class UserStats(BaseModel):
     average_rating: Optional[float] = None
     favorite_religion: Optional[str] = None
     learning_streak: int
+    total_lessons_completed: int
+    longest_streak: int
+    lessons_this_week: int
+    lessons_this_month: int
 
 class LessonRecommendation(BaseModel):
     lesson: LessonResponse

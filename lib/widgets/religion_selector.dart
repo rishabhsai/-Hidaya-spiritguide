@@ -21,13 +21,19 @@ class ReligionSelector extends StatelessWidget {
     switch (mode) {
       case 'comprehensive':
         modeTitle = 'Choose Religion for Comprehensive Course';
-        modeDescription = 'Select a religion to start a complete structured course with 100+ chapters.';
+        modeDescription = 'Select a religion to start a complete structured course with 200+ chapters.';
         break;
       case 'custom':
         modeTitle = 'Choose Religion for Custom Lesson';
         modeDescription = 'Select a religion to create a personalized lesson on any topic.';
         break;
-
+      case 'chatbot':
+        modeTitle = 'Choose Religion for Spiritual Guidance';
+        modeDescription = 'Select a religion for personalized spiritual guidance and AI-generated lessons.';
+        break;
+      default:
+        modeTitle = 'Choose Religion';
+        modeDescription = 'Select a religion to continue.';
     }
 
     return Container(
@@ -195,10 +201,6 @@ class ReligionSelector extends StatelessWidget {
         return 'assets/images/religions/islam .jpg';
       case 'christianity':
         return 'assets/images/religions/Christian cross.jpg';
-      case 'judaism':
-        return 'assets/images/religions/hindu Symbol.jpg'; // Using hindu symbol as placeholder for judaism
-      case 'buddhism':
-        return 'assets/images/religions/hindu Symbol.jpg'; // Using hindu symbol as placeholder for buddhism
       case 'hinduism':
         return 'assets/images/religions/hindu Symbol.jpg';
       default:

@@ -34,19 +34,47 @@ class _HomeScreenState extends State<HomeScreen> {
       final loadedReligions = await ApiService.getReligions();
       setState(() {
         religions = loadedReligions.where((r) => ['Islam', 'Christianity', 'Hinduism'].contains(r.name)).toList();
+        
+        // If no religions from API match our filter, add them manually
+        if (religions.isEmpty) {
+          religions = _createDefaultReligions();
+        }
+        
         isLoading = false;
       });
     } catch (e) {
       setState(() {
+        // For MVP, use default religions if API fails
+        religions = _createDefaultReligions();
         isLoading = false;
       });
-      // For MVP, use only supported religions if API fails
-      religions = [
-        Religion(id: 1, name: 'Islam', description: 'Islamic teachings and practices', isActive: true, createdAt: DateTime.now()),
-        Religion(id: 2, name: 'Christianity', description: 'Christian faith and traditions', isActive: true, createdAt: DateTime.now()),
-        Religion(id: 3, name: 'Hinduism', description: 'Hindu traditions and beliefs', isActive: true, createdAt: DateTime.now()),
-      ];
     }
+  }
+
+  List<Religion> _createDefaultReligions() {
+    return [
+      Religion(
+        id: 1, 
+        name: 'Islam', 
+        description: 'Islamic teachings and practices', 
+        isActive: true, 
+        createdAt: DateTime.now()
+      ),
+      Religion(
+        id: 2, 
+        name: 'Christianity', 
+        description: 'Christian faith and traditions', 
+        isActive: true, 
+        createdAt: DateTime.now()
+      ),
+      Religion(
+        id: 3, 
+        name: 'Hinduism', 
+        description: 'Hindu traditions and beliefs', 
+        isActive: true, 
+        createdAt: DateTime.now()
+      ),
+    ];
   }
 
   Future<void> _updateUserStreak() async {
@@ -75,50 +103,41 @@ class _HomeScreenState extends State<HomeScreen> {
 
           return CustomScrollView(
             slivers: [
-              // Hidaya Logo Placeholder
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.only(top: 32, bottom: 8),
-                  child: Center(
-                    child: Container(
-                      width: 64,
-                      height: 64,
-                      decoration: BoxDecoration(
-                        color: Colors.deepPurple[100],
-                        borderRadius: BorderRadius.circular(20),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.deepPurple.withOpacity(0.08),
-                            blurRadius: 12,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
-                      ),
-                      child: ClipRRect(
-                        borderRadius: BorderRadius.circular(20),
-                        child: Image.asset(
-                          'assets/images/Spiritual Guidance Service Logo Spirit Guide.png',
-                          fit: BoxFit.cover,
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-              // App Bar
+              // App Bar with logo integrated
               SliverAppBar(
                 expandedHeight: 120,
                 floating: false,
                 pinned: true,
                 backgroundColor: const Color(0xFF6750A4),
                 flexibleSpace: FlexibleSpaceBar(
-                  title: Text(
-                    'SpiritGuide',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontSize: 24,
-                      fontWeight: FontWeight.bold,
-                    ),
+                  title: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          color: Colors.white.withOpacity(0.1),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: ClipRRect(
+                          borderRadius: BorderRadius.circular(8),
+                          child: Image.asset(
+                            'assets/images/Spiritual Guidance Service Logo Spirit Guide.png',
+                            fit: BoxFit.cover,
+                          ),
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const Text(
+                        'SpiritGuide',
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
                   ),
                   background: Container(
                     decoration: const BoxDecoration(
@@ -483,14 +502,42 @@ class _HomeScreenState extends State<HomeScreen> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
-      builder: (context) => ReligionSelector(
-        religions: religions,
-        mode: mode,
-        onReligionSelected: (religion) {
-          Navigator.pop(context);
-          _handleModeSelection(mode, religion);
-        },
-      ),
+      builder: (context) {
+        if (isLoading || religions.isEmpty) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.3,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+            ),
+            child: const Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  CircularProgressIndicator(),
+                  SizedBox(height: 16),
+                  Text(
+                    'Loading religions...',
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Color(0xFF6B7280),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+        
+        return ReligionSelector(
+          religions: religions,
+          mode: mode,
+          onReligionSelected: (religion) {
+            Navigator.pop(context);
+            _handleModeSelection(mode, religion);
+          },
+        );
+      },
     );
   }
 
