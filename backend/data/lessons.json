@@ -6,7 +6,9 @@
     "religion": "buddhism",
     "difficulty": "beginner",
     "duration": 5,
-    "practical_task": "Practice mindful breathing for 2 minutes today. Sit comfortably, close your eyes, and focus on your breath."
+    "practical_task": "Practice mindful breathing for 2 minutes today. Sit comfortably, close your eyes, and focus on your breath.",
+    "learning_objectives": "Understand the basic principles of Buddhism and the concept of mindfulness",
+    "prerequisites": "None"
   },
   {
     "id": 2,
@@ -15,7 +17,9 @@
     "religion": "islam",
     "difficulty": "beginner",
     "duration": 7,
-    "practical_task": "Take a moment to reflect on gratitude. Write down three things you're thankful for today."
+    "practical_task": "Take a moment to reflect on gratitude. Write down three things you're thankful for today.",
+    "learning_objectives": "Learn the fundamental practices of Islam and their spiritual significance",
+    "prerequisites": "None"
   },
   {
     "id": 3,
@@ -24,7 +28,9 @@
     "religion": "christianity",
     "difficulty": "beginner",
     "duration": 6,
-    "practical_task": "Practice forgiveness today. Think of someone you need to forgive and make a small gesture of reconciliation."
+    "practical_task": "Practice forgiveness today. Think of someone you need to forgive and make a small gesture of reconciliation.",
+    "learning_objectives": "Understand the core teachings of Jesus and their application to daily life",
+    "prerequisites": "None"
   },
   {
     "id": 4,
@@ -33,7 +39,9 @@
     "religion": "hinduism",
     "difficulty": "beginner",
     "duration": 5,
-    "practical_task": "Practice selfless service today. Do one kind act for someone without expecting anything in return."
+    "practical_task": "Practice selfless service today. Do one kind act for someone without expecting anything in return.",
+    "learning_objectives": "Learn the fundamental concepts of Hinduism and the concept of dharma",
+    "prerequisites": "None"
   },
   {
     "id": 5,
@@ -42,6 +50,118 @@
     "religion": "judaism",
     "difficulty": "beginner",
     "duration": 6,
-    "practical_task": "Practice gratitude by saying 'thank you' to three people today for something they've done for you."
+    "practical_task": "Practice gratitude by saying 'thank you' to three people today for something they've done for you.",
+    "learning_objectives": "Understand the core principles of Judaism and the concept of covenant",
+    "prerequisites": "None"
+  },
+  {
+    "id": 6,
+    "title": "Buddhism: The Four Noble Truths",
+    "content": "The Four Noble Truths are the foundation of Buddhist philosophy and practice. They provide a framework for understanding suffering and the path to liberation.\n\n1. Dukkha (Suffering): Life is characterized by suffering and dissatisfaction\n2. Samudaya (Origin): Suffering arises from craving and attachment\n3. Nirodha (Cessation): Suffering can be overcome by eliminating craving\n4. Magga (Path): The Eightfold Path leads to the cessation of suffering\n\nUnderstanding these truths is essential for spiritual growth in Buddhism.",
+    "religion": "buddhism",
+    "difficulty": "intermediate",
+    "duration": 8,
+    "practical_task": "Reflect on a recent challenge. How did your attachment to a specific outcome contribute to your suffering?",
+    "learning_objectives": "Deepen understanding of Buddhist philosophy through the Four Noble Truths",
+    "prerequisites": "Introduction to Buddhism"
+  },
+  {
+    "id": 7,
+    "title": "Islam: The Concept of Tawhid",
+    "content": "Tawhid is the fundamental Islamic concept of the oneness of God. It is the most important principle in Islam and forms the basis of all Islamic beliefs and practices.\n\nKey Aspects:\n• Unity of God's essence\n• Unity of God's attributes\n• Unity of God's actions\n• Unity in worship\n\nTawhid teaches that Allah is unique, eternal, and has no partners or equals.",
+    "religion": "islam",
+    "difficulty": "intermediate",
+    "duration": 6,
+    "practical_task": "Spend 5 minutes in quiet reflection on the concept of divine unity and its meaning in your life.",
+    "learning_objectives": "Understand the central concept of Tawhid and its implications for daily life",
+    "prerequisites": "The Five Pillars of Islam"
+  },
+  {
+    "id": 8,
+    "title": "Christianity: The Beatitudes",
+    "content": "The Beatitudes are eight blessings taught by Jesus in the Sermon on the Mount. They describe the qualities and attitudes that lead to true happiness and spiritual fulfillment.\n\nKey Beatitudes:\n• Blessed are the poor in spirit\n• Blessed are those who mourn\n• Blessed are the meek\n• Blessed are those who hunger for righteousness\n• Blessed are the merciful\n• Blessed are the pure in heart\n• Blessed are the peacemakers\n• Blessed are those persecuted for righteousness\n\nThese teachings challenge us to live with humility, compassion, and integrity.",
+    "religion": "christianity",
+    "difficulty": "intermediate",
+    "duration": 7,
+    "practical_task": "Choose one beatitude and practice it today. For example, show mercy to someone who has wronged you.",
+    "learning_objectives": "Learn the Beatitudes and their application to modern life",
+    "prerequisites": "Christianity: The Life of Jesus"
+  },
+  {
+    "id": 9,
+    "title": "Hinduism: The Bhagavad Gita",
+    "content": "The Bhagavad Gita is one of the most important texts in Hinduism. It presents a dialogue between Prince Arjuna and Lord Krishna, who serves as his charioteer and spiritual guide.\n\nKey Themes:\n• Dharma and duty\n• Karma yoga (selfless action)\n• Bhakti yoga (devotion)\n• Jnana yoga (knowledge)\n• The nature of the soul\n\nThe Gita teaches that spiritual growth comes through fulfilling one's duties with detachment.",
+    "religion": "hinduism",
+    "difficulty": "intermediate",
+    "duration": 8,
+    "practical_task": "Reflect on your daily responsibilities. How can you perform them with greater detachment and focus?",
+    "learning_objectives": "Understand the key teachings of the Bhagavad Gita and their practical application",
+    "prerequisites": "Hinduism: The Path to Dharma"
+  },
+  {
+    "id": 10,
+    "title": "Judaism: The Ten Commandments",
+    "content": "The Ten Commandments are fundamental moral and ethical guidelines given to Moses on Mount Sinai. They form the basis of Jewish law and have influenced moral thinking worldwide.\n\nKey Commandments:\n• Worship only one God\n• Honor your parents\n• Do not murder\n• Do not steal\n• Do not bear false witness\n• Remember the Sabbath\n• Do not covet\n\nThese commandments provide a framework for ethical living and community harmony.",
+    "religion": "judaism",
+    "difficulty": "intermediate",
+    "duration": 6,
+    "practical_task": "Choose one commandment and reflect on how you can better live it out in your daily life.",
+    "learning_objectives": "Understand the Ten Commandments and their relevance to modern ethical living",
+    "prerequisites": "Judaism: Covenant and Community"
+  },
+  {
+    "id": 11,
+    "title": "Buddhism: Meditation and Mindfulness",
+    "content": "Meditation is a core practice in Buddhism for developing mindfulness, concentration, and insight. It helps us understand the nature of our minds and cultivate positive qualities.\n\nTypes of Meditation:\n• Mindfulness meditation (Vipassana)\n• Concentration meditation (Samatha)\n• Loving-kindness meditation (Metta)\n• Walking meditation\n\nRegular meditation practice leads to greater peace, clarity, and compassion.",
+    "religion": "buddhism",
+    "difficulty": "intermediate",
+    "duration": 10,
+    "practical_task": "Practice 5 minutes of mindful breathing meditation. Focus on your breath and gently return your attention when your mind wanders.",
+    "learning_objectives": "Learn basic meditation techniques and their benefits for daily life",
+    "prerequisites": "Buddhism: The Four Noble Truths"
+  },
+  {
+    "id": 12,
+    "title": "Islam: The Prophet Muhammad's Life",
+    "content": "Muhammad (peace be upon him) is the final prophet in Islam. His life serves as a perfect example of how to live according to Allah's will and teachings.\n\nKey Aspects:\n• Early life and character\n• Revelation of the Quran\n• Migration to Medina\n• Establishment of the Muslim community\n• Final years and legacy\n\nMuhammad's example teaches us about patience, compassion, justice, and devotion to God.",
+    "religion": "islam",
+    "difficulty": "intermediate",
+    "duration": 8,
+    "practical_task": "Reflect on one quality of the Prophet Muhammad that you would like to develop in yourself.",
+    "learning_objectives": "Learn about the life of Prophet Muhammad and his teachings",
+    "prerequisites": "Islam: The Concept of Tawhid"
+  },
+  {
+    "id": 13,
+    "title": "Christianity: The Parables of Jesus",
+    "content": "Jesus often taught through parables - simple stories that convey profound spiritual truths. These stories help us understand God's kingdom and how we should live.\n\nFamous Parables:\n• The Good Samaritan\n• The Prodigal Son\n• The Mustard Seed\n• The Lost Sheep\n• The Talents\n\nParables teach us about love, forgiveness, faith, and the nature of God's kingdom.",
+    "religion": "christianity",
+    "difficulty": "intermediate",
+    "duration": 7,
+    "practical_task": "Read the parable of the Good Samaritan and reflect on how you can be a neighbor to someone in need today.",
+    "learning_objectives": "Understand Jesus' teaching method through parables and their meanings",
+    "prerequisites": "Christianity: The Beatitudes"
+  },
+  {
+    "id": 14,
+    "title": "Hinduism: Karma and Reincarnation",
+    "content": "Karma and reincarnation are central concepts in Hinduism that explain the cycle of birth, death, and rebirth. They provide a framework for understanding life's purpose and spiritual evolution.\n\nKey Concepts:\n• Karma: Action and its consequences\n• Reincarnation: Cycle of rebirth\n• Moksha: Liberation from the cycle\n• Dharma: Righteous living\n\nUnderstanding karma helps us make better choices and live more consciously.",
+    "religion": "hinduism",
+    "difficulty": "intermediate",
+    "duration": 8,
+    "practical_task": "Reflect on a recent action and its consequences. How did it affect you and others?",
+    "learning_objectives": "Understand the concepts of karma and reincarnation in Hindu philosophy",
+    "prerequisites": "Hinduism: The Bhagavad Gita"
+  },
+  {
+    "id": 15,
+    "title": "Judaism: Tikkun Olam - Repairing the World",
+    "content": "Tikkun Olam means 'repairing the world' and is a central concept in Judaism. It emphasizes our responsibility to make the world a better place through acts of kindness, justice, and compassion.\n\nKey Principles:\n• Social justice and charity\n• Environmental stewardship\n• Community service\n• Ethical business practices\n• Education and learning\n\nTikkun Olam teaches that every person has the power and responsibility to improve the world.",
+    "religion": "judaism",
+    "difficulty": "intermediate",
+    "duration": 7,
+    "practical_task": "Identify one way you can contribute to repairing the world today, no matter how small.",
+    "learning_objectives": "Understand the Jewish concept of Tikkun Olam and its practical application",
+    "prerequisites": "Judaism: The Ten Commandments"
   }
 ] 
