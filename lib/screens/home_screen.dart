@@ -1,15 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
-import '../providers/lesson_provider.dart';
-import '../models/user.dart';
 import '../models/religion.dart';
 import '../services/api_service.dart';
-import 'lesson_screen.dart';
-import 'progress_screen.dart';
 import '../widgets/streak_indicator.dart';
 import '../widgets/learning_mode_card.dart';
 import '../widgets/religion_selector.dart';
+import 'progress_screen.dart';
+import 'comprehensive_course_screen.dart';
+import 'custom_learning_screen.dart';
+import 'spiritual_guidance_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -33,20 +33,18 @@ class _HomeScreenState extends State<HomeScreen> {
     try {
       final loadedReligions = await ApiService.getReligions();
       setState(() {
-        religions = loadedReligions;
+        religions = loadedReligions.where((r) => ['Islam', 'Christianity', 'Hinduism'].contains(r.name)).toList();
         isLoading = false;
       });
     } catch (e) {
       setState(() {
         isLoading = false;
       });
-      // For MVP, use default religions if API fails
+      // For MVP, use only supported religions if API fails
       religions = [
         Religion(id: 1, name: 'Islam', description: 'Islamic teachings and practices', isActive: true, createdAt: DateTime.now()),
         Religion(id: 2, name: 'Christianity', description: 'Christian faith and traditions', isActive: true, createdAt: DateTime.now()),
-        Religion(id: 3, name: 'Judaism', description: 'Jewish religion and culture', isActive: true, createdAt: DateTime.now()),
-        Religion(id: 4, name: 'Buddhism', description: 'Buddhist philosophy and practices', isActive: true, createdAt: DateTime.now()),
-        Religion(id: 5, name: 'Hinduism', description: 'Hindu traditions and beliefs', isActive: true, createdAt: DateTime.now()),
+        Religion(id: 3, name: 'Hinduism', description: 'Hindu traditions and beliefs', isActive: true, createdAt: DateTime.now()),
       ];
     }
   }
@@ -58,7 +56,6 @@ class _HomeScreenState extends State<HomeScreen> {
         await ApiService.updateUserStreak(userProvider.user!.id);
         // Refresh user data
         final updatedUser = await ApiService.getUser(userProvider.user!.id);
-        userProvider.updateUser(updatedUser);
       } catch (e) {
         // Handle error silently for MVP
       }
@@ -78,6 +75,36 @@ class _HomeScreenState extends State<HomeScreen> {
 
           return CustomScrollView(
             slivers: [
+              // Hidaya Logo Placeholder
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 32, bottom: 8),
+                  child: Center(
+                    child: Container(
+                      width: 64,
+                      height: 64,
+                      decoration: BoxDecoration(
+                        color: Colors.deepPurple[100],
+                        borderRadius: BorderRadius.circular(20),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.deepPurple.withOpacity(0.08),
+                            blurRadius: 12,
+                            offset: const Offset(0, 4),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(20),
+                        child: Image.asset(
+                          'assets/images/Spiritual Guidance Service Logo Spirit Guide.png',
+                          fit: BoxFit.cover,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+              ),
               // App Bar
               SliverAppBar(
                 expandedHeight: 120,
@@ -86,7 +113,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 backgroundColor: const Color(0xFF6750A4),
                 flexibleSpace: FlexibleSpaceBar(
                   title: Text(
-                    'Hidaya',
+                    'SpiritGuide',
                     style: TextStyle(
                       color: Colors.white,
                       fontSize: 24,
@@ -112,7 +139,6 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                 ],
               ),
-
               // Main Content
               SliverToBoxAdapter(
                 child: Padding(
@@ -186,9 +212,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ],
                         ),
                       ),
-
                       const SizedBox(height: 24),
-
                       // Learning Modes Section
                       const Text(
                         'Choose Your Learning Path',
@@ -199,21 +223,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         ),
                       ),
                       const SizedBox(height: 16),
-
                       // Main Mode (Comprehensive Course)
-                      LearningModeCard(
+                      _buildModeTile(
                         title: 'Comprehensive Course',
                         subtitle: 'Complete structured courses like Duolingo',
-                        description: 'Follow a complete curriculum with 100+ chapters covering the entire history, beliefs, and practices of your chosen religion.',
+                        description: 'Follow a complete curriculum with 200+ chapters covering the entire history, beliefs, and practices of your chosen religion.',
                         icon: Icons.school,
                         color: const Color(0xFF10B981),
                         onTap: () => _showReligionSelector(context, 'comprehensive'),
                       ),
-
                       const SizedBox(height: 12),
-
                       // Custom Mode
-                      LearningModeCard(
+                      _buildModeTile(
                         title: 'Custom Lessons',
                         subtitle: 'Learn about specific topics',
                         description: 'Choose any topic or experience you want to learn about. AI generates personalized lessons with quizzes and practical tasks.',
@@ -221,21 +242,18 @@ class _HomeScreenState extends State<HomeScreen> {
                         color: const Color(0xFFF59E0B),
                         onTap: () => _showReligionSelector(context, 'custom'),
                       ),
-
                       const SizedBox(height: 12),
-
-                      // Chatbot Mode
-                      LearningModeCard(
+                      // Spiritual Guidance Mode
+                      _buildModeTile(
                         title: 'Spiritual Guidance',
-                        subtitle: 'Get personal advice and support',
-                        description: 'Share your worries and thoughts. Get personalized guidance with relevant verses and lessons from your religion.',
-                        icon: Icons.chat_bubble_outline,
+                        subtitle: 'Chat with AI spiritual advisor',
+                        description: 'Get personalized spiritual guidance through conversation. AI identifies your needs and provides tailored lessons from your chosen faith.',
+                        icon: Icons.psychology,
                         color: const Color(0xFF8B5CF6),
                         onTap: () => _showReligionSelector(context, 'chatbot'),
                       ),
 
                       const SizedBox(height: 24),
-
                       // Continue Section
                       if (user.totalLessonsCompleted > 0) ...[
                         const Text(
@@ -307,9 +325,7 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ),
                       ],
-
                       const SizedBox(height: 24),
-
                       // Quick Actions
                       Row(
                         children: [
@@ -337,7 +353,6 @@ class _HomeScreenState extends State<HomeScreen> {
                           ),
                         ],
                       ),
-
                       const SizedBox(height: 32),
                     ],
                   ),
@@ -346,6 +361,78 @@ class _HomeScreenState extends State<HomeScreen> {
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildModeTile({
+    required String title,
+    required String subtitle,
+    required String description,
+    required IconData icon,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.04),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.12),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(icon, color: color, size: 32),
+            ),
+            const SizedBox(width: 20),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: Color(0xFF1F2937),
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    subtitle,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey[700],
+                    ),
+                  ),
+                  const SizedBox(height: 6),
+                  Text(
+                    description,
+                    style: TextStyle(
+                      fontSize: 13,
+                      color: Colors.grey[600],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios, color: Color(0xFF8B5CF6), size: 18),
+          ],
+        ),
       ),
     );
   }
@@ -422,23 +509,29 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   void _startComprehensiveCourse(Religion religion) {
-    // TODO: Navigate to comprehensive course screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Starting ${religion.name} comprehensive course...')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => ComprehensiveCourseScreen(religion: religion),
+      ),
     );
   }
 
   void _startCustomLesson(Religion religion) {
-    // TODO: Navigate to custom lesson screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Creating custom lesson for ${religion.name}...')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CustomLearningScreen(religion: religion),
+      ),
     );
   }
 
   void _startChatbotSession(Religion religion) {
-    // TODO: Navigate to chatbot screen
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('Starting ${religion.name} spiritual guidance...')),
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => SpiritualGuidanceScreen(religion: religion),
+      ),
     );
   }
 

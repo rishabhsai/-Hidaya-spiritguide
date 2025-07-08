@@ -7,6 +7,7 @@ import '../models/religion.dart';
 import '../models/course.dart';
 import '../models/custom_lesson.dart';
 import '../models/chatbot_session.dart';
+import '../models/chapter.dart';
 import 'local_storage_service.dart';
 
 class ApiService {
@@ -213,40 +214,6 @@ class ApiService {
     }
   }
 
-  // Onboarding endpoints
-  static Future<Map<String, dynamic>> getNextOnboardingStep(String userInput, List<Map<String, String>> conversationHistory) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/onboarding/next_step'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'user_input': userInput,
-        'conversation_history': conversationHistory,
-      }),
-    );
-    
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to process onboarding step');
-    }
-  }
-
-  static Future<Map<String, dynamic>> postOnboarding(String userInput, List<Map<String, dynamic>> conversationHistory) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/onboarding/next_step'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'user_input': userInput,
-        'conversation_history': conversationHistory,
-      }),
-    );
-    if (response.statusCode == 200) {
-      return json.decode(response.body);
-    } else {
-      throw Exception('Failed to process onboarding step');
-    }
-  }
-
   // User endpoints
   static Future<User> createUser(String persona, {String? goals, String? learningStyle, String? religion}) async {
     final response = await http.post(
@@ -302,11 +269,11 @@ class ApiService {
     }
   }
 
-  static Future<List<Map<String, dynamic>>> getRecommendedLessons(int userId, {int limit = 5}) async {
+  static Future<List<Lesson>> getRecommendedLessons(int userId, {int limit = 5}) async {
     final response = await http.get(Uri.parse('$baseUrl/lessons/recommended/$userId?limit=$limit'));
     if (response.statusCode == 200) {
       List<dynamic> data = json.decode(response.body);
-      return data.cast<Map<String, dynamic>>();
+      return data.map((json) => Lesson.fromJson(json)).toList();
     } else {
       throw Exception('Failed to load recommended lessons');
     }
@@ -321,7 +288,7 @@ class ApiService {
     }
   }
 
-  static Future<Map<String, dynamic>> generateLesson(int userId, {String? topic, String? religion, String difficulty = 'beginner'}) async {
+  static Future<Lesson?> generateLesson(int userId, {String? topic, String? religion, String difficulty = 'beginner'}) async {
     final response = await http.post(
       Uri.parse('$baseUrl/lessons/generate'),
       headers: {'Content-Type': 'application/json'},
@@ -332,9 +299,8 @@ class ApiService {
         'difficulty': difficulty,
       }),
     );
-    
     if (response.statusCode == 200) {
-      return json.decode(response.body);
+      return Lesson.fromJson(json.decode(response.body));
     } else {
       throw Exception('Failed to generate lesson');
     }
@@ -343,13 +309,12 @@ class ApiService {
   // Progress endpoints
   static Future<Progress> completeLesson(Map<String, dynamic> progressData) async {
     final response = await http.post(
-      Uri.parse('$baseUrl/progress/complete_lesson'),
+      Uri.parse('$baseUrl/progress/complete'),
       headers: {'Content-Type': 'application/json'},
-      body: json.encode(progressData),
+      body: jsonEncode(progressData),
     );
-    
     if (response.statusCode == 200) {
-      return Progress.fromJson(json.decode(response.body));
+      return Progress.fromJson(jsonDecode(response.body));
     } else {
       throw Exception('Failed to complete lesson');
     }

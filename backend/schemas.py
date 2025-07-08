@@ -195,14 +195,12 @@ class OnboardingResponse(BaseModel):
     user_data: Optional[Dict[str, Any]] = None
 
 class UserStats(BaseModel):
-    total_lessons_completed: int
+    completed_lessons: int
     current_streak: int
-    longest_streak: int
     total_time_spent: int
-    average_rating: float
+    average_rating: Optional[float] = None
     favorite_religion: Optional[str] = None
-    lessons_this_week: int
-    lessons_this_month: int
+    learning_streak: int
 
 class LessonRecommendation(BaseModel):
     lesson: LessonResponse

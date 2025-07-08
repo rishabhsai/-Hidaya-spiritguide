@@ -1,5 +1,3 @@
-import 'lesson.dart';
-
 class Progress {
   final int id;
   final int userId;
@@ -10,7 +8,6 @@ class Progress {
   final int? timeSpent;
   final String? moodBefore;
   final String? moodAfter;
-  final Lesson? lesson;
 
   Progress({
     required this.id,
@@ -22,63 +19,34 @@ class Progress {
     this.timeSpent,
     this.moodBefore,
     this.moodAfter,
-    this.lesson,
   });
 
   factory Progress.fromJson(Map<String, dynamic> json) {
     return Progress(
       id: json['id'],
-      userId: json['user_id'],
-      lessonId: json['lesson_id'],
-      completedAt: DateTime.parse(json['completed_at']),
+      userId: json['userId'],
+      lessonId: json['lessonId'],
+      completedAt: DateTime.parse(json['completedAt']),
       reflection: json['reflection'],
       rating: json['rating'],
-      timeSpent: json['time_spent'],
-      moodBefore: json['mood_before'],
-      moodAfter: json['mood_after'],
-      lesson: json['lesson'] != null ? Lesson.fromJson(json['lesson']) : null,
+      timeSpent: json['timeSpent'],
+      moodBefore: json['moodBefore'],
+      moodAfter: json['moodAfter'],
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
       'id': id,
-      'user_id': userId,
-      'lesson_id': lessonId,
-      'completed_at': completedAt.toIso8601String(),
+      'userId': userId,
+      'lessonId': lessonId,
+      'completedAt': completedAt.toIso8601String(),
       'reflection': reflection,
       'rating': rating,
-      'time_spent': timeSpent,
-      'mood_before': moodBefore,
-      'mood_after': moodAfter,
-      'lesson': lesson?.toJson(),
+      'timeSpent': timeSpent,
+      'moodBefore': moodBefore,
+      'moodAfter': moodAfter,
     };
-  }
-
-  Progress copyWith({
-    int? id,
-    int? userId,
-    int? lessonId,
-    DateTime? completedAt,
-    String? reflection,
-    int? rating,
-    int? timeSpent,
-    String? moodBefore,
-    String? moodAfter,
-    Lesson? lesson,
-  }) {
-    return Progress(
-      id: id ?? this.id,
-      userId: userId ?? this.userId,
-      lessonId: lessonId ?? this.lessonId,
-      completedAt: completedAt ?? this.completedAt,
-      reflection: reflection ?? this.reflection,
-      rating: rating ?? this.rating,
-      timeSpent: timeSpent ?? this.timeSpent,
-      moodBefore: moodBefore ?? this.moodBefore,
-      moodAfter: moodAfter ?? this.moodAfter,
-      lesson: lesson ?? this.lesson,
-    );
   }
 }
 

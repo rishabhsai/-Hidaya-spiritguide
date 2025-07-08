@@ -1,26 +1,16 @@
 class ChatbotSession {
   final int id;
   final int userId;
-  final String? sessionTitle;
-  final String initialConcern;
   final String religion;
-  final List<ChatMessage>? conversationHistory;
-  final String? generatedLesson;
-  final List<RecommendedVerse>? recommendedVerses;
-  final String? moodImprovement;
+  final List<ChatMessage> messages;
   final DateTime createdAt;
   final DateTime updatedAt;
 
   ChatbotSession({
     required this.id,
     required this.userId,
-    this.sessionTitle,
-    required this.initialConcern,
     required this.religion,
-    this.conversationHistory,
-    this.generatedLesson,
-    this.recommendedVerses,
-    this.moodImprovement,
+    required this.messages,
     required this.createdAt,
     required this.updatedAt,
   });
@@ -29,21 +19,10 @@ class ChatbotSession {
     return ChatbotSession(
       id: json['id'],
       userId: json['user_id'],
-      sessionTitle: json['session_title'],
-      initialConcern: json['initial_concern'],
       religion: json['religion'],
-      conversationHistory: json['conversation_history'] != null
-          ? (json['conversation_history'] as List)
-              .map((m) => ChatMessage.fromJson(m))
-              .toList()
-          : null,
-      generatedLesson: json['generated_lesson'],
-      recommendedVerses: json['recommended_verses'] != null
-          ? (json['recommended_verses'] as List)
-              .map((v) => RecommendedVerse.fromJson(v))
-              .toList()
-          : null,
-      moodImprovement: json['mood_improvement'],
+      messages: (json['messages'] as List)
+          .map((m) => ChatMessage.fromJson(m))
+          .toList(),
       createdAt: DateTime.parse(json['created_at']),
       updatedAt: DateTime.parse(json['updated_at']),
     );
@@ -53,40 +32,75 @@ class ChatbotSession {
     return {
       'id': id,
       'user_id': userId,
-      'session_title': sessionTitle,
-      'initial_concern': initialConcern,
       'religion': religion,
-      'conversation_history': conversationHistory?.map((m) => m.toJson()).toList(),
-      'generated_lesson': generatedLesson,
-      'recommended_verses': recommendedVerses?.map((v) => v.toJson()).toList(),
-      'mood_improvement': moodImprovement,
+      'messages': messages.map((m) => m.toJson()).toList(),
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
   }
+
+  ChatbotSession copyWith({
+    int? id,
+    int? userId,
+    String? religion,
+    List<ChatMessage>? messages,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return ChatbotSession(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      religion: religion ?? this.religion,
+      messages: messages ?? this.messages,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
 }
 
 class ChatMessage {
-  final String role;
+  final int id;
   final String content;
+  final bool isUser;
+  final DateTime timestamp;
 
   ChatMessage({
-    required this.role,
+    required this.id,
     required this.content,
+    required this.isUser,
+    required this.timestamp,
   });
 
   factory ChatMessage.fromJson(Map<String, dynamic> json) {
     return ChatMessage(
-      role: json['role'],
+      id: json['id'],
       content: json['content'],
+      isUser: json['is_user'],
+      timestamp: DateTime.parse(json['timestamp']),
     );
   }
 
   Map<String, dynamic> toJson() {
     return {
-      'role': role,
+      'id': id,
       'content': content,
+      'is_user': isUser,
+      'timestamp': timestamp.toIso8601String(),
     };
+  }
+
+  ChatMessage copyWith({
+    int? id,
+    String? content,
+    bool? isUser,
+    DateTime? timestamp,
+  }) {
+    return ChatMessage(
+      id: id ?? this.id,
+      content: content ?? this.content,
+      isUser: isUser ?? this.isUser,
+      timestamp: timestamp ?? this.timestamp,
+    );
   }
 }
 

@@ -1,100 +1,42 @@
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import '../models/lesson.dart';
 import '../models/progress.dart';
 import '../services/api_service.dart';
 
 class LessonProvider with ChangeNotifier {
   List<Lesson> _recommendedLessons = [];
-  List<Progress> _userProgress = [];
-  bool _isLoading = false;
+  List<Progress> _completedLessons = [];
   String? _error;
+  bool _isLoading = false;
 
   List<Lesson> get recommendedLessons => _recommendedLessons;
-  List<Progress> get userProgress => _userProgress;
-  bool get isLoading => _isLoading;
+  List<Progress> get completedLessons => _completedLessons;
   String? get error => _error;
+  bool get isLoading => _isLoading;
 
-  Future<void> loadRecommendedLessons(int userId) async {
-    _isLoading = true;
-    _error = null;
+  Future<void> fetchRecommendedLessons(int userId) async {
+    final lessons = await ApiService.getRecommendedLessons(userId);
+    _recommendedLessons = lessons;
     notifyListeners();
-
-    try {
-      _recommendedLessons = await ApiService.getRecommendedLessons(userId);
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
   }
 
-  Future<void> loadUserProgress(int userId) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      _userProgress = await ApiService.getUserProgress(userId);
-    } catch (e) {
-      _error = e.toString();
-    } finally {
-      _isLoading = false;
+  Future<Lesson?> generateLesson(int userId) async {
+    final lesson = await ApiService.generateLesson(userId);
+    if (lesson != null) {
+      _recommendedLessons.insert(0, lesson);
       notifyListeners();
     }
-  }
-
-  Future<Lesson?> getLesson(int lessonId) async {
-    try {
-      return await ApiService.getLesson(lessonId);
-    } catch (e) {
-      _error = e.toString();
-      notifyListeners();
-      return null;
-    }
-  }
-
-  Future<Lesson?> generateLesson(Map<String, dynamic> requestData) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
-    try {
-      final lesson = await ApiService.generateLesson(requestData);
-      _recommendedLessons.insert(0, lesson); // Add to beginning of list
-      return lesson;
-    } catch (e) {
-      _error = e.toString();
-      return null;
-    } finally {
-      _isLoading = false;
-      notifyListeners();
-    }
+    return lesson;
   }
 
   Future<bool> completeLesson(Map<String, dynamic> progressData) async {
     try {
       final progress = await ApiService.completeLesson(progressData);
-      _userProgress.add(progress);
-      
-      // Remove from recommended lessons if it was there
-      _recommendedLessons.removeWhere((lesson) => lesson.id == progress.lessonId);
-      
+      _completedLessons.add(progress);
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
-      notifyListeners();
       return false;
     }
-  }
-
-  bool isLessonCompleted(int lessonId) {
-    return _userProgress.any((progress) => progress.lessonId == lessonId);
-  }
-
-  void clearError() {
-    _error = null;
-    notifyListeners();
   }
 } 

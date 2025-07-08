@@ -27,10 +27,7 @@ class ReligionSelector extends StatelessWidget {
         modeTitle = 'Choose Religion for Custom Lesson';
         modeDescription = 'Select a religion to create a personalized lesson on any topic.';
         break;
-      case 'chatbot':
-        modeTitle = 'Choose Religion for Spiritual Guidance';
-        modeDescription = 'Select a religion to get personalized spiritual advice and support.';
-        break;
+
     }
 
     return Container(
@@ -119,13 +116,14 @@ class ReligionSelector extends StatelessWidget {
                   width: 50,
                   height: 50,
                   decoration: BoxDecoration(
-                    color: _getReligionColor(religion.name).withOpacity(0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
-                  child: Icon(
-                    _getReligionIcon(religion.name),
-                    color: _getReligionColor(religion.name),
-                    size: 24,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.asset(
+                      _getReligionImage(religion.name),
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 
@@ -191,6 +189,23 @@ class ReligionSelector extends StatelessWidget {
     }
   }
 
+  String _getReligionImage(String religionName) {
+    switch (religionName.toLowerCase()) {
+      case 'islam':
+        return 'assets/images/religions/islam .jpg';
+      case 'christianity':
+        return 'assets/images/religions/Christian cross.jpg';
+      case 'judaism':
+        return 'assets/images/religions/hindu Symbol.jpg'; // Using hindu symbol as placeholder for judaism
+      case 'buddhism':
+        return 'assets/images/religions/hindu Symbol.jpg'; // Using hindu symbol as placeholder for buddhism
+      case 'hinduism':
+        return 'assets/images/religions/hindu Symbol.jpg';
+      default:
+        return 'assets/images/religions/hindu Symbol.jpg';
+    }
+  }
+
   IconData _getReligionIcon(String religionName) {
     switch (religionName.toLowerCase()) {
       case 'islam':
@@ -198,7 +213,7 @@ class ReligionSelector extends StatelessWidget {
       case 'christianity':
         return Icons.church;
       case 'judaism':
-        return Icons.star; // Fallback for compatibility
+        return Icons.star; // Using star instead of star_of_david
       case 'buddhism':
         return Icons.self_improvement;
       case 'hinduism':

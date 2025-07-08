@@ -3,15 +3,15 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'providers/user_provider.dart';
 import 'providers/lesson_provider.dart';
-import 'screens/onboarding_screen.dart';
+import 'screens/splash_screen.dart';
 import 'screens/home_screen.dart';
 
 void main() {
-  runApp(const HidayaApp());
+  runApp(const SpiritGuideApp());
 }
 
-class HidayaApp extends StatelessWidget {
-  const HidayaApp({super.key});
+class SpiritGuideApp extends StatelessWidget {
+  const SpiritGuideApp({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +21,7 @@ class HidayaApp extends StatelessWidget {
         ChangeNotifierProvider(create: (_) => LessonProvider()),
       ],
       child: MaterialApp(
-        title: 'Hidaya',
+        title: 'SpiritGuide',
         theme: ThemeData(
           colorScheme: ColorScheme.fromSeed(
             seedColor: const Color(0xFF6750A4),
@@ -32,26 +32,9 @@ class HidayaApp extends StatelessWidget {
           ),
           useMaterial3: true,
         ),
-        home: const AppWrapper(),
+        home: const SplashScreen(),
         debugShowCheckedModeBanner: false,
       ),
-    );
-  }
-}
-
-class AppWrapper extends StatelessWidget {
-  const AppWrapper({super.key});
-
-  @override
-  Widget build(BuildContext context) {
-    return Consumer<UserProvider>(
-      builder: (context, userProvider, child) {
-        if (userProvider.user != null) {
-          return const HomeScreen();
-        } else {
-          return const OnboardingScreen();
-        }
-      },
     );
   }
 }

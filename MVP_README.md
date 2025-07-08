@@ -1,4 +1,4 @@
-# Hidaya MVP - Religion Learning App
+# SpiritGuide MVP - Religion Learning App
 
 A Duolingo-style app for learning about religions, powered by AI and designed for spiritual growth.
 
@@ -7,39 +7,42 @@ A Duolingo-style app for learning about religions, powered by AI and designed fo
 ### Three Learning Modes
 
 #### 1. **Comprehensive Course** (Main Mode)
-- **Like Duolingo's main course** with 100+ chapters
+- **Like Duolingo's main course** with 200+ chapters
 - **Three difficulty levels**: Beginner, Intermediate, Expert
 - **Complete curriculum** covering entire religion history, beliefs, and practices
 - **Structured progression** with chapters and lessons
 - **Same for everyone** - consistent learning path
 
-#### 2. **Custom Lessons** (Topic Mode)
+#### 2. **Custom Learning** (Topic Mode)
 - **Choose any topic** you want to learn about
 - **AI-generated lessons** with quizzes and practical tasks
 - **Personalized content** based on your interests
 - **Reputable sources** only - no misinformation
 - **Flexible learning** - learn what matters to you
 
-#### 3. **Spiritual Guidance** (Chatbot Mode)
-- **Share your worries and thoughts**
-- **Get personalized advice** from your religion's teachings
+#### 3. **Spiritual Guidance** (Optional)
+- **Personal advice and support** from your religion's teachings
 - **Relevant verses and lessons** to address your concerns
 - **Mood improvement suggestions**
 - **Practical steps** for spiritual growth
+- *(Currently disabled by default)*
 
 ### Additional Features
 
 #### Streak Management
 - **Daily streaks** like Duolingo
-- **Streak savers** (paid feature) to protect your streak
+- **Streak savers** to protect your streak
 - **Longest streak tracking**
 - **Motivational notifications**
 
 #### Beautiful UI/UX
+- **Animated splash screen** with SpiritGuide logo
 - **Modern, intuitive design**
-- **Optimized for mobile** (iOS & Android)
+- **Optimized for mobile and web** (iOS, Android, Web)
 - **Smooth animations** and transitions
 - **Accessible design** principles
+- **Direct-to-home launch** (no onboarding/chatbot)
+- **Custom branding and religion images**
 
 #### AI-Powered Content
 - **GPT-4o integration** for lesson generation
@@ -59,7 +62,7 @@ A Duolingo-style app for learning about religions, powered by AI and designed fo
 1. **Clone the repository**
    ```bash
    git clone <your-repo-url>
-   cd hidaya
+   cd spiritguide
    ```
 
 2. **Run the setup script**
@@ -88,37 +91,32 @@ A Duolingo-style app for learning about religions, powered by AI and designed fo
 
 ## 📱 How to Use
 
-### First Time Setup
-1. **Onboarding**: Answer questions about your spiritual journey
-2. **Choose your persona**: Curious explorer or religious practitioner
-3. **Select learning goals**: What do you want to achieve?
-
 ### Daily Learning
 1. **Open the app** and see your streak
 2. **Choose a learning mode**:
    - **Comprehensive**: Follow the structured course
    - **Custom**: Pick a topic you're interested in
-   - **Guidance**: Get help with personal concerns
+   - **Guidance**: Get help with personal concerns (if enabled)
 3. **Complete lessons** and track progress
 4. **Maintain your streak** with daily practice
 
 ### Learning Modes in Detail
 
 #### Comprehensive Course
-- **Select a religion** (Islam, Christianity, Judaism, Buddhism, Hinduism)
+- **Select a religion** (Christianity, Hinduism, Islam)
 - **Choose difficulty level** (Beginner, Intermediate, Expert)
-- **Follow the curriculum** with 100+ chapters
+- **Follow the curriculum** with 200+ chapters
 - **Complete quizzes** and practical tasks
 - **Track progress** through the course
 
-#### Custom Lessons
+#### Custom Learning
 - **Select a religion** for context
 - **Enter any topic** you want to learn about
 - **AI generates** a personalized lesson
 - **Take the quiz** to test understanding
 - **Complete practical tasks** for real-world application
 
-#### Spiritual Guidance
+#### Spiritual Guidance (Optional)
 - **Select your religion** for relevant advice
 - **Share your concern** or question
 - **Get compassionate guidance** based on religious teachings
@@ -134,7 +132,7 @@ A Duolingo-style app for learning about religions, powered by AI and designed fo
 - **SQLite** for development (PostgreSQL for production)
 
 ### Frontend (Flutter)
-- **Cross-platform** (iOS & Android)
+- **Cross-platform** (iOS, Android, Web)
 - **Provider** for state management
 - **HTTP** for API communication
 - **Material Design 3** for modern UI
@@ -146,7 +144,6 @@ A Duolingo-style app for learning about religions, powered by AI and designed fo
 - **Chapters**: Course content
 - **Lessons**: Individual lessons
 - **Custom Lessons**: AI-generated lessons
-- **Chatbot Sessions**: Spiritual guidance conversations
 - **Progress**: User learning progress
 - **Streak Savers**: Paid streak protection
 
@@ -157,16 +154,14 @@ A Duolingo-style app for learning about religions, powered by AI and designed fo
 - `GET /courses` - Get comprehensive courses
 - `POST /courses/generate` - Generate new course
 - `POST /custom-lessons/generate` - Generate custom lesson
-- `POST /chatbot/start` - Start spiritual guidance session
 - `POST /users/{id}/update-streak` - Update user streak
 
 ### User Management
-- `POST /onboarding/next_step` - Onboarding conversation
 - `POST /users/create` - Create user profile
 - `GET /users/{id}/stats` - Get user statistics
 
 ### Progress Tracking
-- `POST /progress/complete_lesson` - Mark lesson complete
+- `POST /progress/complete` - Mark lesson complete
 - `GET /progress/{user_id}` - Get user progress
 - `POST /streak-savers/purchase` - Buy streak savers
 
@@ -179,17 +174,17 @@ A Duolingo-style app for learning about religions, powered by AI and designed fo
 - **Accessibility** - Works for everyone
 
 ### Color Scheme
-- **Primary**: Purple (#6750A4) - Spiritual, trustworthy
-- **Success**: Green (#10B981) - Growth, progress
-- **Warning**: Orange (#F59E0B) - Energy, creativity
-- **Info**: Blue (#3B82F6) - Wisdom, knowledge
+- **Primary**: Emerald Green, Deep Purple, and custom gradients
+- **Success**: Green - Growth, progress
+- **Warning**: Orange - Energy, creativity
+- **Info**: Blue - Wisdom, knowledge
 
 ### Key Screens
-1. **Home Screen** - Learning mode selection
-2. **Religion Selector** - Choose religion for learning
-3. **Lesson Screen** - Interactive lesson content
-4. **Progress Screen** - Track learning journey
-5. **Chatbot Screen** - Spiritual guidance interface
+1. **Animated Splash Screen** - App opening animation
+2. **Home Screen** - Learning mode selection
+3. **Religion Selector** - Choose religion for learning
+4. **Lesson Screen** - Interactive lesson content
+5. **Progress Screen** - Track learning journey
 
 ## 🔒 Security & Privacy
 
@@ -248,36 +243,4 @@ flutter pub get
 # Clean and rebuild
 flutter clean
 flutter pub get
-```
-
-**API connection errors**
-```bash
-# Check if backend is running
-curl http://localhost:8000/
-
-# Check API key in .env
-cat backend/.env
-```
-
-## 📞 Support
-
-### Getting Help
-- **Documentation**: Check this README first
-- **API Docs**: http://localhost:8000/docs
-- **Issues**: Create GitHub issue
-- **Discussions**: Use GitHub Discussions
-
-### Contributing
-1. Fork the repository
-2. Create feature branch
-3. Make changes
-4. Add tests
-5. Submit pull request
-
-## 📄 License
-
-MIT License - see LICENSE file for details
-
----
-
-**Built with ❤️ for spiritual growth and understanding** 
+``` 

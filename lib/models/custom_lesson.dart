@@ -1,25 +1,25 @@
 class CustomLesson {
   final int id;
   final int userId;
-  final String title;
   final String topic;
   final String religion;
+  final String difficulty;
   final String content;
-  final List<QuizQuestion>? quizQuestions;
-  final List<PracticalTask>? practicalTasks;
-  final List<Source>? sources;
+  final List<String> exercises;
+  final List<Map<String, dynamic>> quiz;
+  final int estimatedTime;
   final DateTime createdAt;
 
   CustomLesson({
     required this.id,
     required this.userId,
-    required this.title,
     required this.topic,
     required this.religion,
+    required this.difficulty,
     required this.content,
-    this.quizQuestions,
-    this.practicalTasks,
-    this.sources,
+    required this.exercises,
+    required this.quiz,
+    required this.estimatedTime,
     required this.createdAt,
   });
 
@@ -27,25 +27,13 @@ class CustomLesson {
     return CustomLesson(
       id: json['id'],
       userId: json['user_id'],
-      title: json['title'],
       topic: json['topic'],
       religion: json['religion'],
+      difficulty: json['difficulty'],
       content: json['content'],
-      quizQuestions: json['quiz_questions'] != null
-          ? (json['quiz_questions'] as List)
-              .map((q) => QuizQuestion.fromJson(q))
-              .toList()
-          : null,
-      practicalTasks: json['practical_tasks'] != null
-          ? (json['practical_tasks'] as List)
-              .map((t) => PracticalTask.fromJson(t))
-              .toList()
-          : null,
-      sources: json['sources'] != null
-          ? (json['sources'] as List)
-              .map((s) => Source.fromJson(s))
-              .toList()
-          : null,
+      exercises: List<String>.from(json['exercises']),
+      quiz: List<Map<String, dynamic>>.from(json['quiz']),
+      estimatedTime: json['estimated_time'],
       createdAt: DateTime.parse(json['created_at']),
     );
   }
@@ -54,15 +42,41 @@ class CustomLesson {
     return {
       'id': id,
       'user_id': userId,
-      'title': title,
       'topic': topic,
       'religion': religion,
+      'difficulty': difficulty,
       'content': content,
-      'quiz_questions': quizQuestions?.map((q) => q.toJson()).toList(),
-      'practical_tasks': practicalTasks?.map((t) => t.toJson()).toList(),
-      'sources': sources?.map((s) => s.toJson()).toList(),
+      'exercises': exercises,
+      'quiz': quiz,
+      'estimated_time': estimatedTime,
       'created_at': createdAt.toIso8601String(),
     };
+  }
+
+  CustomLesson copyWith({
+    int? id,
+    int? userId,
+    String? topic,
+    String? religion,
+    String? difficulty,
+    String? content,
+    List<String>? exercises,
+    List<Map<String, dynamic>>? quiz,
+    int? estimatedTime,
+    DateTime? createdAt,
+  }) {
+    return CustomLesson(
+      id: id ?? this.id,
+      userId: userId ?? this.userId,
+      topic: topic ?? this.topic,
+      religion: religion ?? this.religion,
+      difficulty: difficulty ?? this.difficulty,
+      content: content ?? this.content,
+      exercises: exercises ?? this.exercises,
+      quiz: quiz ?? this.quiz,
+      estimatedTime: estimatedTime ?? this.estimatedTime,
+      createdAt: createdAt ?? this.createdAt,
+    );
   }
 }
 

@@ -54,23 +54,21 @@ class LocalStorageService {
   static Future<void> saveUserProgress(List<Progress> progress) async {
     final prefs = await SharedPreferences.getInstance();
     final progressJson = progress.map((p) => p.toJson()).toList();
-    await prefs.setString(_userProgressKey, jsonEncode(progressJson));
+    await prefs.setString('user_progress', jsonEncode(progressJson));
   }
 
   static Future<List<Progress>> getUserProgress() async {
     final prefs = await SharedPreferences.getInstance();
-    final progressJson = prefs.getString(_userProgressKey);
-    if (progressJson != null) {
-      List<dynamic> data = jsonDecode(progressJson);
-      return data.map((json) => Progress.fromJson(json)).toList();
-    }
-    return [];
+    final data = prefs.getString('user_progress');
+    if (data == null) return [];
+    final List<dynamic> jsonList = jsonDecode(data);
+    return jsonList.map((json) => Progress.fromJson(json)).toList();
   }
 
   static Future<void> addProgress(Progress progress) async {
-    final currentProgress = await getUserProgress();
-    currentProgress.add(progress);
-    await saveUserProgress(currentProgress);
+    final current = await getUserProgress();
+    current.add(progress);
+    await saveUserProgress(current);
   }
 
   // Streak Management
