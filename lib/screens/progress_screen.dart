@@ -116,7 +116,30 @@ class _ProgressScreenState extends State<ProgressScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
-        title: const Text('Your Progress'),
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/Spiritual Guidance Service Logo Spirit Guide.png',
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text('Your Progress'),
+            ),
+          ],
+        ),
         backgroundColor: const Color(0xFF6750A4),
         foregroundColor: Colors.white,
         elevation: 0,

@@ -178,7 +178,30 @@ Remember to practice regularly and seek guidance from knowledgeable teachers whe
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
-        title: Text('Custom Learning - ${widget.religion.name}'),
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/Spiritual Guidance Service Logo Spirit Guide.png',
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text('Custom Learning - ${widget.religion.name}'),
+            ),
+          ],
+        ),
         backgroundColor: const Color(0xFF6750A4),
         foregroundColor: Colors.white,
         elevation: 0,
@@ -635,7 +658,30 @@ class _CustomLessonDetailScreenState extends State<CustomLessonDetailScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
-        title: Text(widget.lesson.topic),
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/Spiritual Guidance Service Logo Spirit Guide.png',
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(widget.lesson.topic),
+            ),
+          ],
+        ),
         backgroundColor: const Color(0xFFF59E0B),
         foregroundColor: Colors.white,
         elevation: 0,

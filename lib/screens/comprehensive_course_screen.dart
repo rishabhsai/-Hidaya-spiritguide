@@ -173,7 +173,30 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
     return Scaffold(
       backgroundColor: const Color(0xFFF7F9FC),
       appBar: AppBar(
-        title: Text('${widget.religion.name} Course'),
+        title: Row(
+          children: [
+            Container(
+              width: 32,
+              height: 32,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(8),
+                child: Image.asset(
+                  'assets/images/Spiritual Guidance Service Logo Spirit Guide.png',
+                  fit: BoxFit.contain,
+                  filterQuality: FilterQuality.high,
+                ),
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text('${widget.religion.name} Course'),
+            ),
+          ],
+        ),
         backgroundColor: const Color(0xFF6750A4),
         foregroundColor: Colors.white,
         elevation: 0,

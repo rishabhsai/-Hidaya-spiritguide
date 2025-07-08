@@ -101,63 +101,77 @@ class _HomeScreenState extends State<HomeScreen> {
             return const Center(child: CircularProgressIndicator());
           }
 
-          return CustomScrollView(
-            slivers: [
-              // App Bar with logo integrated
-              SliverAppBar(
-                expandedHeight: 120,
-                floating: false,
-                pinned: true,
-                backgroundColor: const Color(0xFF6750A4),
-                flexibleSpace: FlexibleSpaceBar(
-                  title: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 32,
-                        height: 32,
-                        decoration: BoxDecoration(
-                          color: Colors.white.withOpacity(0.1),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: Image.asset(
-                            'assets/images/Spiritual Guidance Service Logo Spirit Guide.png',
-                            fit: BoxFit.cover,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      const Text(
-                        'SpiritGuide',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 20,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  background: Container(
-                    decoration: const BoxDecoration(
-                      gradient: LinearGradient(
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                        colors: [Color(0xFF6750A4), Color(0xFF8B5CF6)],
-                      ),
-                    ),
+          return Column(
+            children: [
+              // Custom App Bar with logo in top-left
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.fromLTRB(16, 50, 16, 16),
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                    colors: [Color(0xFF6750A4), Color(0xFF8B5CF6)],
                   ),
                 ),
-                actions: [
-                  IconButton(
-                    icon: const Icon(Icons.person, color: Colors.white),
-                    onPressed: () {
-                      // TODO: Navigate to profile screen
-                    },
-                  ),
-                ],
+                child: Row(
+                  children: [
+                    // Logo positioned in top-left
+                    Container(
+                      width: 48,
+                      height: 48,
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: Colors.black.withOpacity(0.1),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2),
+                          ),
+                        ],
+                      ),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(12),
+                        child: Image.asset(
+                          'assets/images/Spiritual Guidance Service Logo Spirit Guide.png',
+                          fit: BoxFit.contain,
+                          filterQuality: FilterQuality.high,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    // Title
+                    const Text(
+                      'SpiritGuide',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                        letterSpacing: 0.5,
+                      ),
+                    ),
+                    const Spacer(),
+                    // Profile button
+                    Container(
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.15),
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: IconButton(
+                        icon: const Icon(Icons.person, color: Colors.white, size: 24),
+                        onPressed: () {
+                          // TODO: Navigate to profile screen
+                        },
+                      ),
+                    ),
+                  ],
+                ),
               ),
+              // Main Content
+              Expanded(
+                child: CustomScrollView(
+                  slivers: [
               // Main Content
               SliverToBoxAdapter(
                 child: Padding(
@@ -375,6 +389,9 @@ class _HomeScreenState extends State<HomeScreen> {
                       const SizedBox(height: 32),
                     ],
                   ),
+                ),
+              ),
+                  ],
                 ),
               ),
             ],
