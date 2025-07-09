@@ -528,7 +528,7 @@ class _HomeScreenState extends State<HomeScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => CustomLearningScreen(religion: religion),
+        builder: (context) => CustomLearningScreen(),
       ),
     );
   }

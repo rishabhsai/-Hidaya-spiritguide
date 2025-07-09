@@ -9,16 +9,35 @@ class UserProvider with ChangeNotifier {
   User? get user => _user;
   String? get error => _error;
 
-  Future<void> createUser(String persona) async {
-    _user = await ApiService.createUser(persona);
-    notifyListeners();
+  Future<void> createUser(String name, String selectedReligion) async {
+    try {
+      _user = await ApiService.createUser(name, selectedReligion);
+      _error = null;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
   }
 
   Future<void> refreshUser() async {
     if (_user != null) {
       try {
         _user = await ApiService.getUser(_user!.id);
+        _error = null;
         notifyListeners();
+      } catch (e) {
+        _error = e.toString();
+        notifyListeners();
+      }
+    }
+  }
+
+  Future<void> updateStreak() async {
+    if (_user != null) {
+      try {
+        await ApiService.updateUserStreak(_user!.id);
+        await refreshUser(); // Refresh to get updated streak
       } catch (e) {
         _error = e.toString();
         notifyListeners();
@@ -28,6 +47,7 @@ class UserProvider with ChangeNotifier {
 
   void setUser(User user) {
     _user = user;
+    _error = null;
     notifyListeners();
   }
 

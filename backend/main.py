@@ -23,6 +23,7 @@ from schemas import (
 from services.ai_service import AIService
 from services.user_service import UserService
 from services.lesson_service import LessonService
+from services.ai_service import AIService
 
 # Load environment variables from .env file
 load_dotenv()
@@ -38,10 +39,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Load environment variables from .env file
+from dotenv import load_dotenv
+load_dotenv()
+
 # Initialize OpenAI client with API key from environment variable
 openai_api_key = os.getenv("OPENAI_API_KEY")
-if not openai_api_key:
-    raise ValueError("OPENAI_API_KEY environment variable not set.")
+if not openai_api_key or openai_api_key.strip() == "":
+    print("Warning: OPENAI_API_KEY not set. AI features will use fallback responses.")
+    print("Please set your OpenAI API key in the .env file to enable AI functionality.")
 
 # Create database tables
 create_tables()
@@ -176,9 +182,9 @@ async def generate_custom_lesson(
 ):
     """Generate a custom lesson on a specific topic"""
     try:
-        lesson_data = await ai_service.generate_custom_lesson(
-            request.topic, 
+        lesson_data = ai_service.generate_custom_lesson(
             request.religion, 
+            request.topic, 
             request.difficulty
         )
         
@@ -444,11 +450,23 @@ async def get_next_onboarding_step(request: OnboardingRequest, db: Session = Dep
 
 # User endpoints
 @app.post("/users/create", response_model=UserResponse)
-def create_user(user_data: UserCreate, db: Session = Depends(get_db)):
+def create_user(user_data: dict, db: Session = Depends(get_db)):
     """Create a new user"""
     try:
         user_service = UserService(db)
-        user = user_service.create_user(user_data)
+        # Handle both UserCreate object and simple dict format
+        if isinstance(user_data, dict):
+            # Frontend sends: {'name': '...', 'selected_religion': '...'}
+            user_create = UserCreate(
+                persona=user_data.get('name', 'learner'),
+                religion=user_data.get('selected_religion', 'islam'),
+                goals=None,
+                learning_style=None
+            )
+        else:
+            user_create = user_data
+            
+        user = user_service.create_user(user_create)
         return UserResponse.from_orm(user)
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -633,6 +651,65 @@ def complete_lesson(progress_data: ProgressCreate, db: Session = Depends(get_db)
         db.commit()
         db.refresh(progress)
         return ProgressResponse.from_orm(progress)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+# AI-powered endpoints
+@app.post("/ai/generate_lesson")
+def generate_custom_lesson(topic: str, religion: str, difficulty: str = "beginner"):
+    """Generate a custom lesson using AI"""
+    try:
+        ai_service = AIService()
+        lesson = ai_service.generate_custom_lesson(religion, topic, difficulty)
+        return lesson
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/chat")
+def chat_with_spiritual_guide(message: str, religion: str, user_context: str = ""):
+    """Chat with AI spiritual guide"""
+    try:
+        ai_service = AIService()
+        response = ai_service.chat_with_spiritual_guide(message, religion, user_context)
+        return response
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/ai/generate_quiz")
+def generate_quiz_questions(lesson_content: str, religion: str, difficulty: str = "beginner"):
+    """Generate quiz questions based on lesson content"""
+    try:
+        ai_service = AIService()
+        questions = ai_service.generate_quiz_questions(lesson_content, religion, difficulty)
+        return {"questions": questions}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/progress/complete")
+def complete_lesson_simple(progress_data: dict, db: Session = Depends(get_db)):
+    """Simple lesson completion endpoint for frontend"""
+    try:
+        user_id = progress_data.get('user_id')
+        lesson_id = progress_data.get('lesson_id')
+        
+        if not user_id or not lesson_id:
+            raise HTTPException(status_code=400, detail="user_id and lesson_id are required")
+        
+        # Create progress record
+        progress = UserProgress(
+            user_id=user_id,
+            lesson_id=lesson_id,
+            completed_at=datetime.utcnow()
+        )
+        db.add(progress)
+        db.commit()
+        db.refresh(progress)
+        
+        # Update user streak
+        user_service = UserService(db)
+        user_service.update_user_stats(user_id)
+        
+        return {"success": True, "message": "Lesson completed successfully"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

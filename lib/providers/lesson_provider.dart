@@ -4,39 +4,58 @@ import '../models/progress.dart';
 import '../services/api_service.dart';
 
 class LessonProvider with ChangeNotifier {
-  List<Lesson> _recommendedLessons = [];
-  List<Progress> _completedLessons = [];
+  List<Lesson> _lessons = [];
+  Progress? _userProgress;
   String? _error;
   bool _isLoading = false;
 
-  List<Lesson> get recommendedLessons => _recommendedLessons;
-  List<Progress> get completedLessons => _completedLessons;
+  List<Lesson> get lessons => _lessons;
+  Progress? get userProgress => _userProgress;
   String? get error => _error;
   bool get isLoading => _isLoading;
 
-  Future<void> fetchRecommendedLessons(int userId) async {
-    final lessons = await ApiService.getRecommendedLessons(userId);
-    _recommendedLessons = lessons;
+  Future<void> fetchLessons({String? religion}) async {
+    _isLoading = true;
+    _error = null;
     notifyListeners();
-  }
 
-  Future<Lesson?> generateLesson(int userId) async {
-    final lesson = await ApiService.generateLesson(userId);
-    if (lesson != null) {
-      _recommendedLessons.insert(0, lesson);
+    try {
+      _lessons = await ApiService.getLessons(religion: religion);
+      _isLoading = false;
+      notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      _isLoading = false;
       notifyListeners();
     }
-    return lesson;
   }
 
-  Future<bool> completeLesson(Map<String, dynamic> progressData) async {
+  Future<void> fetchUserProgress(int userId) async {
     try {
-      final progress = await ApiService.completeLesson(progressData);
-      _completedLessons.add(progress);
+      _userProgress = await ApiService.getProgress(userId);
+      _error = null;
       notifyListeners();
+    } catch (e) {
+      _error = e.toString();
+      notifyListeners();
+    }
+  }
+
+  Future<bool> completeLesson(int userId, int lessonId) async {
+    try {
+      await ApiService.completeLesson(userId, lessonId);
+      // Refresh progress after completing lesson
+      await fetchUserProgress(userId);
       return true;
     } catch (e) {
+      _error = e.toString();
+      notifyListeners();
       return false;
     }
+  }
+
+  void clearError() {
+    _error = null;
+    notifyListeners();
   }
 } 

@@ -110,8 +110,8 @@ class _SplashScreenState extends State<SplashScreen>
   Future<void> _initializeUser() async {
     try {
       final userProvider = Provider.of<UserProvider>(context, listen: false);
-      // Create a default user with 'learner' persona for MVP
-      await userProvider.createUser('learner');
+      // Create a default user for MVP
+      await userProvider.createUser('SpiritGuide User', 'islam');
       setState(() {
         _userInitialized = true;
       });

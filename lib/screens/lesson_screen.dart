@@ -43,12 +43,10 @@ class _LessonScreenState extends State<LessonScreen> {
 
     if (userProvider.user == null) return;
 
-    final success = await lessonProvider.completeLesson({
-      'user_id': userProvider.user!.id,
-      'lesson_id': widget.lesson.id,
-      'reflection': _reflectionController.text.trim(),
-      'rating': _rating,
-    });
+    final success = await lessonProvider.completeLesson(
+      userProvider.user!.id,
+      widget.lesson.id,
+    );
 
     if (success) {
       setState(() {

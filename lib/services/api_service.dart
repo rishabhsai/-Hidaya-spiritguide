@@ -11,7 +11,15 @@ import '../models/chapter.dart';
 import 'local_storage_service.dart';
 
 class ApiService {
-  static const String baseUrl = 'http://localhost:8000'; // Change for production
+  // Use environment-based URL - will be updated for production
+  static const String baseUrl = String.fromEnvironment(
+    'API_BASE_URL',
+    defaultValue: 'http://localhost:8000',
+  );
+
+  static const Map<String, String> headers = {
+    'Content-Type': 'application/json',
+  };
 
   // Religion endpoints
   static Future<List<Religion>> getReligions() async {
@@ -215,31 +223,33 @@ class ApiService {
   }
 
   // User endpoints
-  static Future<User> createUser(String persona, {String? goals, String? learningStyle, String? religion}) async {
+  static Future<User> createUser(String name, String selectedReligion) async {
     final response = await http.post(
       Uri.parse('$baseUrl/users/create'),
-      headers: {'Content-Type': 'application/json'},
-      body: json.encode({
-        'persona': persona,
-        'goals': goals,
-        'learning_style': learningStyle,
-        'religion': religion,
+      headers: headers,
+      body: jsonEncode({
+        'name': name,
+        'selected_religion': selectedReligion,
       }),
     );
-    
+
     if (response.statusCode == 200) {
-      return User.fromJson(json.decode(response.body));
+      return User.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to create user');
+      throw Exception('Failed to create user: ${response.body}');
     }
   }
 
   static Future<User> getUser(int userId) async {
-    final response = await http.get(Uri.parse('$baseUrl/users/$userId'));
+    final response = await http.get(
+      Uri.parse('$baseUrl/users/$userId'),
+      headers: headers,
+    );
+
     if (response.statusCode == 200) {
-      return User.fromJson(json.decode(response.body));
+      return User.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to load user');
+      throw Exception('Failed to get user: ${response.body}');
     }
   }
 
@@ -253,19 +263,18 @@ class ApiService {
   }
 
   // Lesson endpoints
-  static Future<List<Lesson>> getLessons({String? religion, String? difficulty}) async {
-    final queryParams = <String, String>{};
+  static Future<List<Lesson>> getLessons({String? religion}) async {
+    final Map<String, String> queryParams = {};
     if (religion != null) queryParams['religion'] = religion;
-    if (difficulty != null) queryParams['difficulty'] = difficulty;
-
     final uri = Uri.parse('$baseUrl/lessons').replace(queryParameters: queryParams);
-    final response = await http.get(uri);
     
+    final response = await http.get(uri, headers: headers);
+
     if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      return data.map((json) => Lesson.fromJson(json)).toList();
+      final List<dynamic> lessonsJson = jsonDecode(response.body);
+      return lessonsJson.map((json) => Lesson.fromJson(json)).toList();
     } else {
-      throw Exception('Failed to load lessons');
+      throw Exception('Failed to get lessons: ${response.body}');
     }
   }
 
@@ -307,26 +316,31 @@ class ApiService {
   }
 
   // Progress endpoints
-  static Future<Progress> completeLesson(Map<String, dynamic> progressData) async {
-    final response = await http.post(
-      Uri.parse('$baseUrl/progress/complete'),
-      headers: {'Content-Type': 'application/json'},
-      body: jsonEncode(progressData),
+  static Future<Progress> getProgress(int userId) async {
+    final response = await http.get(
+      Uri.parse('$baseUrl/progress/$userId'),
+      headers: headers,
     );
+
     if (response.statusCode == 200) {
       return Progress.fromJson(jsonDecode(response.body));
     } else {
-      throw Exception('Failed to complete lesson');
+      throw Exception('Failed to get progress: ${response.body}');
     }
   }
 
-  static Future<List<Progress>> getUserProgress(int userId) async {
-    final response = await http.get(Uri.parse('$baseUrl/progress/$userId'));
-    if (response.statusCode == 200) {
-      List<dynamic> data = json.decode(response.body);
-      return data.map((json) => Progress.fromJson(json)).toList();
-    } else {
-      throw Exception('Failed to load user progress');
+  static Future<void> completeLesson(int userId, int lessonId) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/progress/complete'),
+      headers: headers,
+      body: jsonEncode({
+        'user_id': userId,
+        'lesson_id': lessonId,
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to complete lesson: ${response.body}');
     }
   }
 
@@ -347,6 +361,45 @@ class ApiService {
       return json.decode(response.body);
     } else {
       throw Exception('Failed to generate quiz');
+    }
+  }
+
+  // AI-powered endpoints
+
+  static Future<Map<String, dynamic>> chatWithSpiritualGuide(String message, String religion, {String userContext = ''}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/ai/chat'),
+      headers: headers,
+      body: jsonEncode({
+        'message': message,
+        'religion': religion,
+        'user_context': userContext,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to get spiritual guidance');
+    }
+  }
+
+  static Future<List<Map<String, dynamic>>> generateQuizQuestions(String lessonContent, String religion, {String difficulty = 'beginner'}) async {
+    final response = await http.post(
+      Uri.parse('$baseUrl/ai/generate_quiz'),
+      headers: headers,
+      body: jsonEncode({
+        'lesson_content': lessonContent,
+        'religion': religion,
+        'difficulty': difficulty,
+      }),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      return List<Map<String, dynamic>>.from(data['questions'] ?? []);
+    } else {
+      throw Exception('Failed to generate quiz questions');
     }
   }
 } 
