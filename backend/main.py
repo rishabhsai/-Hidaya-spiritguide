@@ -510,7 +510,40 @@ def get_all_lessons(
     """Get all lessons with optional filtering"""
     lesson_service = LessonService(db)
     lessons = lesson_service.get_all_lessons(religion, difficulty)
-    return [LessonResponse.from_orm(lesson) for lesson in lessons]
+    
+    # Fix sources field validation issue
+    lesson_responses = []
+    for lesson in lessons:
+        lesson_dict = {
+            'id': lesson.id,
+            'title': lesson.title,
+            'content': lesson.content,
+            'religion': lesson.religion,
+            'difficulty': lesson.difficulty,
+            'duration': lesson.duration,
+            'practical_task': lesson.practical_task,
+            'learning_objectives': lesson.learning_objectives,
+            'prerequisites': lesson.prerequisites,
+            'lesson_type': lesson.lesson_type,
+            'chapter_id': lesson.chapter_id,
+            'custom_topic': lesson.custom_topic,
+            'ai_generated': lesson.ai_generated,
+            'created_at': lesson.created_at,
+        }
+        
+        # Handle sources field - ensure it's a list or None
+        if hasattr(lesson, 'sources') and lesson.sources is not None:
+            if isinstance(lesson.sources, list):
+                lesson_dict['sources'] = lesson.sources
+            else:
+                # If sources is not a list, set to None
+                lesson_dict['sources'] = None
+        else:
+            lesson_dict['sources'] = None
+            
+        lesson_responses.append(LessonResponse(**lesson_dict))
+    
+    return lesson_responses
 
 @app.get("/lessons/recommended/{user_id}", response_model=List[LessonRecommendation])
 async def get_recommended_lessons(

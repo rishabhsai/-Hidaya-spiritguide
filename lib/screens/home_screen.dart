@@ -7,6 +7,8 @@ import '../services/progress_service.dart';
 import '../widgets/streak_indicator.dart';
 import '../widgets/learning_mode_card.dart';
 import '../widgets/religion_selector.dart';
+import '../widgets/progress_tracker.dart';
+import '../widgets/animated_popup.dart';
 import '../theme/duolingo_theme.dart';
 import 'progress_screen.dart';
 import 'comprehensive_course_screen.dart';
@@ -32,6 +34,13 @@ class _HomeScreenState extends State<HomeScreen> {
     _loadReligions();
     _updateUserStreak();
     _loadNextLesson();
+    
+    // Check for achievements after a short delay
+    Future.delayed(const Duration(seconds: 2), () {
+      if (mounted) {
+        _checkAchievements();
+      }
+    });
   }
 
   Future<void> _loadReligions() async {
@@ -194,71 +203,14 @@ class _HomeScreenState extends State<HomeScreen> {
                       child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                      // Welcome Section
-                      Container(
-                        padding: const EdgeInsets.all(20),
-                        decoration: BoxDecoration(
-                          gradient: const LinearGradient(
-                            colors: [Color(0xFF6750A4), Color(0xFF8B5CF6)],
-                          ),
-                          borderRadius: BorderRadius.circular(16),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Welcome back!',
-                              style: TextStyle(
-                                color: Colors.white.withOpacity(0.9),
-                                fontSize: 16,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              user.persona == 'practitioner' 
-                                  ? 'Continue your spiritual journey'
-                                  : 'Keep exploring world religions',
-                              style: const TextStyle(
-                                color: Colors.white,
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                              ),
-                          ),
-                          const SizedBox(height: 16),
-                            Row(
-                              children: [
-                                Expanded(
-                                  child: StreakIndicator(
-                                    currentStreak: user.currentStreak,
-                                    longestStreak: user.longestStreak,
-                                    streakSavers: user.streakSaversAvailable,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Text(
-                                      '${user.totalLessonsCompleted}',
-                                      style: const TextStyle(
-                                        color: Colors.white,
-                                        fontSize: 24,
-                                        fontWeight: FontWeight.bold,
-                                      ),
-                                    ),
-                          Text(
-                                      'Lessons completed',
-                                      style: TextStyle(
-                                        color: Colors.white.withOpacity(0.8),
-                                        fontSize: 12,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
-                          ],
-                        ),
+                      // Progress Tracker Section
+                      ProgressTracker(
+                        currentXP: user.totalLessonsCompleted * 10, // 10 XP per lesson
+                        level: (user.totalLessonsCompleted / 5).floor() + 1, // Level up every 5 lessons
+                        currentStreak: user.currentStreak,
+                        longestStreak: user.longestStreak,
+                        lessonsCompleted: user.totalLessonsCompleted,
+                        targetXP: ((user.totalLessonsCompleted / 5).floor() + 1) * 50, // 50 XP per level
                       ),
                       const SizedBox(height: 24),
                       // Learning Modes Section
@@ -300,7 +252,7 @@ class _HomeScreenState extends State<HomeScreen> {
                         subtitle: 'Chat with AI spiritual advisor',
                         description: 'Get personalized spiritual guidance through conversation. AI identifies your needs and provides tailored lessons from your chosen faith.',
                         icon: Icons.psychology,
-                        color: DuolingoTheme.accent,
+                        color: DuolingoTheme.accentPink,
                         onTap: () => _showReligionSelector(context, 'chatbot'),
                       ),
 
@@ -623,7 +575,7 @@ class _HomeScreenState extends State<HomeScreen> {
         break;
       case 'chatbot':
         icon = Icons.psychology;
-        color = DuolingoTheme.accent;
+        color = DuolingoTheme.accentPink;
         title = 'Spiritual Guidance';
         break;
       default:
@@ -770,6 +722,58 @@ class _HomeScreenState extends State<HomeScreen> {
       case 'chatbot':
         _startChatbotSession(religionObj);
         break;
+    }
+  }
+
+  void _showAchievementPopup(String achievement, String description) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: AchievementPopup(
+          achievement: achievement,
+          description: description,
+          onDismiss: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+  }
+
+  void _showStreakPopup(int streak) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: StreakPopup(
+          streak: streak,
+          onDismiss: () => Navigator.of(context).pop(),
+        ),
+      ),
+    );
+  }
+
+  void _checkAchievements() {
+    final user = Provider.of<UserProvider>(context, listen: false).user;
+    if (user == null) return;
+
+    // Check for streak achievements
+    if (user.currentStreak == 7) {
+      _showAchievementPopup('7-Day Streak', 'Maintained a week-long learning streak!');
+    } else if (user.currentStreak == 30) {
+      _showAchievementPopup('30-Day Streak', 'A month of consistent learning!');
+    } else if (user.currentStreak == 100) {
+      _showAchievementPopup('Century Streak', '100 days of spiritual growth!');
+    }
+
+    // Check for lesson completion achievements
+    if (user.totalLessonsCompleted == 10) {
+      _showAchievementPopup('First Steps', 'Completed your first 10 lessons!');
+    } else if (user.totalLessonsCompleted == 50) {
+      _showAchievementPopup('Dedicated Learner', '50 lessons completed!');
+    } else if (user.totalLessonsCompleted == 100) {
+      _showAchievementPopup('Century Club', '100 lessons completed!');
     }
   }
 } 

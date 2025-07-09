@@ -11,6 +11,8 @@ class DuolingoTheme {
   static const Color error = Color(0xFFFF4B4B); // Duolingo Red
   static const Color success = Color(0xFF58CC02);
   static const Color warning = Color(0xFFFFB800);
+  static const Color accentPink = Color(0xFFFF5DA2); // Playful Pink
+  static const Color accentPurple = Color(0xFF9B51E0); // Playful Purple
   
   // Background Colors
   static const Color background = Color(0xFFF7F7F7);
@@ -154,14 +156,6 @@ class DuolingoTheme {
             fontSize: 16,
             fontWeight: FontWeight.w600,
           ),
-        ),
-      ),
-      cardTheme: CardThemeData(
-        color: surface,
-        elevation: 2,
-        shadowColor: Colors.black.withOpacity(0.1),
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(16),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(

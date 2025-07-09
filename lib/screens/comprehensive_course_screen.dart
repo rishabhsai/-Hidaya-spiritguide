@@ -6,6 +6,9 @@ import '../screens/lesson_screen.dart';
 import '../services/progress_service.dart';
 import 'package:provider/provider.dart';
 import '../providers/user_provider.dart';
+import '../widgets/gamified_lesson_card.dart';
+import '../widgets/animated_popup.dart';
+import '../theme/duolingo_theme.dart';
 
 class ComprehensiveCourseScreen extends StatefulWidget {
   final Religion religion;
@@ -39,11 +42,10 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
       });
 
       // Load lessons from API
-      final fetchedLessons = await ApiService.getLessons(widget.religion.name.toLowerCase());
+      final fetchedLessons = await ApiService.getLessons(religion: widget.religion.name.toLowerCase());
       
       // Filter only comprehensive lessons and limit to 20
       final comprehensiveLessons = fetchedLessons
-          .where((lesson) => lesson.lessonType == 'comprehensive')
           .take(20)
           .toList();
       
@@ -195,23 +197,30 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
                         ],
                       ),
                     ),
-                    // Lessons Grid
+                    // Lessons List with Gamified Cards
                     Expanded(
-                      child: GridView.builder(
+                      child: ListView.builder(
                         padding: const EdgeInsets.all(16),
-                        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                          crossAxisCount: 2,
-                          childAspectRatio: 1.2,
-                          crossAxisSpacing: 12,
-                          mainAxisSpacing: 12,
-                        ),
                         itemCount: lessons.length,
                         itemBuilder: (context, index) {
                           final lesson = lessons[index];
                           final isCompleted = lesson.id <= 3; // Mock completion status
-                          return _LessonCard(
-                            lesson: lesson,
+                          final isCurrent = lesson.id == completedLessons + 1;
+                          final isLocked = lesson.id > completedLessons + 1;
+                          final progress = isCompleted ? 1.0 : (isCurrent ? 0.3 : 0.0);
+                          final xpReward = 10 + (lesson.difficulty == 'intermediate' ? 5 : 0) + (lesson.difficulty == 'advanced' ? 10 : 0);
+                          
+                          return GamifiedLessonCard(
+                            title: lesson.title,
+                            subtitle: 'Chapter ${lesson.id}',
+                            religion: widget.religion.name,
+                            difficulty: lesson.difficulty,
+                            duration: lesson.duration,
                             isCompleted: isCompleted,
+                            isLocked: isLocked,
+                            isCurrent: isCurrent,
+                            progress: progress,
+                            xpReward: xpReward,
                             onTap: () => _openLesson(lesson),
                           );
                         },
@@ -243,126 +252,39 @@ class _ComprehensiveCourseScreenState extends State<ComprehensiveCourseScreen> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => LessonScreen(
-          lesson: lesson,
-          religion: widget.religion,
-        ),
+        builder: (context) => LessonScreen(lesson: lesson),
       ),
-    );
+    ).then((_) {
+      // Check for achievements when returning from lesson
+      _checkLessonCompletionAchievements();
+    });
   }
-}
 
-class _LessonCard extends StatelessWidget {
-  final Lesson lesson;
-  final bool isCompleted;
-  final VoidCallback onTap;
+  void _checkLessonCompletionAchievements() {
+    final userProvider = Provider.of<UserProvider>(context, listen: false);
+    final user = userProvider.user;
+    if (user == null) return;
 
-  const _LessonCard({
-    required this.lesson,
-    required this.isCompleted,
-    required this.onTap,
-  });
+    // Check for course completion achievements
+    if (completedLessons == 5) {
+      _showAchievementPopup('Course Explorer', 'Completed 5 chapters in ${widget.religion.name}!');
+    } else if (completedLessons == 10) {
+      _showAchievementPopup('Halfway There', 'Completed 10 chapters in ${widget.religion.name}!');
+    } else if (completedLessons == 20) {
+      _showAchievementPopup('Course Master', 'Completed the entire ${widget.religion.name} course!');
+    }
+  }
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        decoration: BoxDecoration(
-          color: isCompleted ? const Color(0xFF10B981) : Colors.white,
-          borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 2),
-            ),
-          ],
-        ),
-        child: Padding(
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(8),
-                    decoration: BoxDecoration(
-                      color: isCompleted 
-                          ? Colors.white.withOpacity(0.2)
-                          : const Color(0xFF6750A4).withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      '${lesson.id}',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: isCompleted 
-                            ? Colors.white
-                            : const Color(0xFF6750A4),
-                      ),
-                    ),
-                  ),
-                  if (isCompleted)
-                    const Icon(
-                      Icons.check_circle,
-                      color: Colors.white,
-                      size: 20,
-                    ),
-                ],
-              ),
-              const SizedBox(height: 8),
-              Expanded(
-                child: Text(
-                  lesson.title,
-                  style: TextStyle(
-                    fontSize: 14,
-                    fontWeight: FontWeight.w600,
-                    color: isCompleted 
-                        ? Colors.white
-                        : const Color(0xFF1F2937),
-                  ),
-                  maxLines: 3,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                lesson.difficulty.toUpperCase(),
-                style: TextStyle(
-                  fontSize: 12,
-                  color: isCompleted 
-                      ? Colors.white.withOpacity(0.8)
-                      : Colors.grey[600],
-                ),
-              ),
-              const SizedBox(height: 4),
-              Row(
-                children: [
-                  Icon(
-                    Icons.access_time,
-                    size: 12,
-                    color: isCompleted 
-                        ? Colors.white.withOpacity(0.8)
-                        : Colors.grey[600],
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${lesson.duration} min',
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: isCompleted 
-                          ? Colors.white.withOpacity(0.8)
-                          : Colors.grey[600],
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+  void _showAchievementPopup(String achievement, String description) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: AchievementPopup(
+          achievement: achievement,
+          description: description,
+          onDismiss: () => Navigator.of(context).pop(),
         ),
       ),
     );

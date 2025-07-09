@@ -86,7 +86,7 @@ class LessonResponse(LessonBase):
     chapter_id: Optional[int] = None
     custom_topic: Optional[str] = None
     ai_generated: bool
-    sources: Optional[Dict[str, Any]] = None
+    sources: Optional[List[Dict[str, Any]]] = None
     created_at: datetime
 
     class Config:

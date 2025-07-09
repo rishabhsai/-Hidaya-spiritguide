@@ -92,7 +92,7 @@ class UserService:
             completed_lessons=completed_lessons,
             current_streak=current_streak,
             total_time_spent=total_time,
-            average_rating=float(avg_rating) if avg_rating else 0.0,
+            average_rating=float(avg_rating) if avg_rating else None,
             favorite_religion=favorite_religion,
             learning_streak=learning_streak,
             total_lessons_completed=completed_lessons,
